@@ -1,1 +1,1 @@
-# notan-study
+# notan-study react native app
