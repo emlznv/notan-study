@@ -1,17 +1,7 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, Image, StyleSheet } from 'react-native';
 
-const SPLASH_TIMEOUT = 2000;
-
-const Splash = ({ navigation }: { navigation: any }) => {
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      navigation.replace('Onboarding');
-    }, SPLASH_TIMEOUT);
-
-    return () => clearTimeout(timer);
-  }, [navigation]);
-
+const Splash = () => {
   return (
     <View style={styles.container}>
       <Image
