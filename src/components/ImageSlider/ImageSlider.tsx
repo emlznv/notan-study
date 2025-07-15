@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     width: 270,
     height: 270,
     resizeMode: 'contain',
-    marginVertical: 40,
+    marginVertical: 30,
   },
   dotContainer: {
     flexDirection: 'row',
