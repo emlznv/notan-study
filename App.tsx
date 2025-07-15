@@ -9,6 +9,8 @@ import { useEffect, useState } from 'react';
 
 const Stack = createNativeStackNavigator();
 
+const splash_timeout = 2000;
+
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
   const [isFirstLaunch, setIsFirstLaunch] = useState<boolean | null>(null);
@@ -25,7 +27,7 @@ function App() {
       }
       setTimeout(() => {
         setShowSplash(false);
-      }, 2000);
+      }, splash_timeout);
     };
 
     initializeApp();
@@ -37,12 +39,12 @@ function App() {
     <View style={styles.container}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          {isFirstLaunch ? (
-            <Stack.Screen name="Onboarding" component={Onboarding} />
-          ) : (
-            <Stack.Screen name="Home" component={Home} />
-          )}
+        <Stack.Navigator
+          initialRouteName={isFirstLaunch ? 'Onboarding' : 'Home'}
+          screenOptions={{ headerShown: false }}
+        >
+          <Stack.Screen name="Onboarding" component={Onboarding} />
+          <Stack.Screen name="Home" component={Home} />
         </Stack.Navigator>
       </NavigationContainer>
     </View>
