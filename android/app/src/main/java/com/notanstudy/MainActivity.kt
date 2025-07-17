@@ -5,6 +5,9 @@ import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 import org.opencv.android.OpenCVLoader
+import android.os.Bundle
+import android.util.Log
+
 
 class MainActivity : ReactActivity() {
 
@@ -22,12 +25,10 @@ class MainActivity : ReactActivity() {
       DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled)
 
   override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
-
-    if (!OpenCVLoader.initDebug()) {
-      Log.e("OpenCV", "OpenCV initialization failed")
-    } else {
-      Log.d("OpenCV", "OpenCV initialized successfully")
-    }
+      super.onCreate(savedInstanceState)
+      Log.d("MainActivity", "onCreate called")
+      // Optional: Initialize OpenCV here or elsewhere
+      val success = OpenCVLoader.initDebug()
+      Log.d("MainActivity", "OpenCV loaded: $success")
   }
 }

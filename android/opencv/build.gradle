@@ -1,6 +1,7 @@
 apply plugin: 'com.android.library'
 
 android {
+    namespace "org.opencv" 
     compileSdkVersion 35 // ← Match with your app module
     buildToolsVersion "35.0.0" // ← Match with your app module
 
@@ -12,6 +13,7 @@ android {
     sourceSets {
         main {
             java.srcDirs = ['src']
+            jniLibs.srcDirs = ['src/main/jniLibs']
             manifest.srcFile 'AndroidManifest.xml'
         }
     }
