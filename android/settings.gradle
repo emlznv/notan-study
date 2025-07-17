@@ -4,3 +4,5 @@ extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autoli
 rootProject.name = 'NotanStudy'
 include ':app'
 includeBuild('../node_modules/@react-native/gradle-plugin')
+include ':app', ':opencv'
+project(':opencv').projectDir = new File(settingsDir, 'opencv')

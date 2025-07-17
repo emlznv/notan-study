@@ -1,0 +1,18 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 35 // ← Match with your app module
+    buildToolsVersion "35.0.0" // ← Match with your app module
+
+    defaultConfig {
+        minSdkVersion 24 // ← Match with your app module
+        targetSdkVersion 35 // ← Match with your app module
+    }
+
+    sourceSets {
+        main {
+            java.srcDirs = ['src']
+            manifest.srcFile 'AndroidManifest.xml'
+        }
+    }
+}
