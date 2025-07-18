@@ -4,10 +4,7 @@ import { View, Image, StyleSheet } from 'react-native';
 const Splash = () => {
   return (
     <View style={styles.container}>
-      <Image
-        source={require('../../assets/logo-placeholder.png')}
-        style={styles.logo}
-      />
+      <Image source={require('../../assets/logo.png')} style={styles.logo} />
     </View>
   );
 };
@@ -20,8 +17,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logo: {
-    width: 120,
-    height: 120,
+    width: 100,
+    height: 100,
     resizeMode: 'contain',
   },
 });
