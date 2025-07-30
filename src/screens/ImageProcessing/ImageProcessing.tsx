@@ -53,11 +53,12 @@ const ImageProcessing = ({ route }: { route: any }) => {
     }
   };
 
+  const handleSliderChange = (values: number[]) => {
+    setToneValues(values[0]);
+  };
+
   const handleSliderFinish = (values: number[]) => {
-    const selected = values[0];
-    setToneValues(selected);
-    // setProcessedImageUri(null);
-    process(imageUri, selected);
+    process(imageUri, values[0]);
   };
 
   if (!imageUri) {
@@ -83,7 +84,15 @@ const ImageProcessing = ({ route }: { route: any }) => {
         paddingVertical: 20,
       }}
     >
-      <View style={[{ width: containerWidth, height: containerHeight }]}>
+      <View
+        style={[
+          {
+            width: containerWidth,
+            height: containerHeight,
+            alignItems: 'center',
+          },
+        ]}
+      >
         {processedImageUri ? (
           <Image
             key={processedImageUri + '?t=' + Date.now()}
@@ -95,15 +104,13 @@ const ImageProcessing = ({ route }: { route: any }) => {
         ) : (
           <Text>No image provided</Text>
         )}
-      </View>
-
-      <View style={{ width: 300, alignItems: 'center' }}>
         <MultiSlider
           values={[toneValues]}
           min={2}
           max={10}
           step={1}
-          sliderLength={280}
+          // snapped={true}
+          onValuesChange={handleSliderChange}
           onValuesChangeFinish={handleSliderFinish}
           selectedStyle={{ backgroundColor: 'blue' }}
           unselectedStyle={{ backgroundColor: 'lightgray' }}
