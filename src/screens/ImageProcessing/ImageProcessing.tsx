@@ -9,9 +9,13 @@ import {
   View,
 } from 'react-native';
 import { NativeModules } from 'react-native';
+import { RootStackParamList } from '../../../App';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 const { ImageProcessor } = NativeModules;
 
-const ImageProcessing = ({ route }: { route: any }) => {
+const ImageProcessing = ({
+  route,
+}: NativeStackScreenProps<RootStackParamList, 'ImageProcessing'>) => {
   const { imageUri } = route.params;
   const [processedImageUri, setProcessedImageUri] = useState(null);
   const [toneValues, setToneValues] = useState(2);
@@ -39,11 +43,9 @@ const ImageProcessing = ({ route }: { route: any }) => {
     );
   }, [imageUri]);
 
-  const process = async (uri: string, tones: number) => {
+  const posterizeImage = async (uri: string, tones: number) => {
     try {
-      console.log('Processing image with tones:', tones);
       const processedUri = await ImageProcessor.processImage(uri, tones);
-      console.log('Processed URI:', processedUri);
       if (!processedUri) {
         console.warn('Warning: Processed URI is null or undefined');
       }
@@ -58,7 +60,7 @@ const ImageProcessing = ({ route }: { route: any }) => {
   };
 
   const handleSliderFinish = (values: number[]) => {
-    process(imageUri, values[0]);
+    posterizeImage(imageUri, values[0]);
   };
 
   if (!imageUri) {
@@ -75,15 +77,15 @@ const ImageProcessing = ({ route }: { route: any }) => {
   const aspectRatio = imageSize.width / imageSize.height;
   const containerHeight = containerWidth / aspectRatio;
 
+  const renderCustomMarker = (currentValue: number) => (
+    <View style={styles.markerContainer}>
+      <Text style={styles.markerText}>{currentValue}</Text>
+      <View style={styles.markerCircle} />
+    </View>
+  );
+
   return (
-    <ScrollView
-      contentContainerStyle={{
-        flexGrow: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingVertical: 20,
-      }}
-    >
+    <ScrollView contentContainerStyle={styles.scrollContentContainer}>
       <View
         style={[
           {
@@ -95,7 +97,6 @@ const ImageProcessing = ({ route }: { route: any }) => {
       >
         {processedImageUri ? (
           <Image
-            key={processedImageUri + '?t=' + Date.now()}
             source={{ uri: 'file://' + processedImageUri }}
             style={styles.image}
           />
@@ -115,21 +116,7 @@ const ImageProcessing = ({ route }: { route: any }) => {
           selectedStyle={{ backgroundColor: 'blue' }}
           unselectedStyle={{ backgroundColor: 'lightgray' }}
           markerStyle={{ backgroundColor: 'blue' }}
-          customMarker={e => (
-            <View style={{ alignItems: 'center' }}>
-              <Text style={{ fontSize: 12, marginBottom: 4 }}>
-                {e.currentValue}
-              </Text>
-              <View
-                style={{
-                  width: 20,
-                  height: 20,
-                  borderRadius: 10,
-                  backgroundColor: 'blue',
-                }}
-              />
-            </View>
-          )}
+          customMarker={({ currentValue }) => renderCustomMarker(currentValue)}
         />
       </View>
     </ScrollView>
@@ -147,6 +134,25 @@ const styles = StyleSheet.create({
     height: '100%',
     width: '100%',
     resizeMode: 'contain',
+  },
+  scrollContentContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  markerContainer: {
+    alignItems: 'center',
+  },
+  markerText: {
+    fontSize: 12,
+    marginBottom: 4,
+  },
+  markerCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: 'blue',
   },
 });
 

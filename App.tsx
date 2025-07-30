@@ -9,7 +9,13 @@ import Home from './src/screens/Home/Home';
 import { useEffect, useState } from 'react';
 import ImageProcessing from './src/screens/ImageProcessing/ImageProcessing';
 
-const Stack = createNativeStackNavigator();
+export type RootStackParamList = {
+  Onboarding: undefined;
+  Home: undefined;
+  ImageProcessing: { imageUri: string };
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const splash_timeout = 2000;
 

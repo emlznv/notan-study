@@ -9,8 +9,12 @@ import {
 } from 'react-native';
 import { Button } from 'react-native-paper';
 import ImagePicker, { ImageOrVideo } from 'react-native-image-crop-picker';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../../App';
 
-const Home = ({ navigation }: { navigation: any }) => {
+const Home = ({
+  navigation,
+}: NativeStackScreenProps<RootStackParamList, 'Home'>) => {
   const requestCameraPermission = async () => {
     try {
       const granted = await PermissionsAndroid.request(
