@@ -42,10 +42,10 @@ const Home = ({ navigation }: { navigation: any }) => {
     try {
       // TODO: change UI colors to use the theme ones
       const image = await ImagePicker.openCamera({
-        width: 300,
-        height: 300,
         cropping: true,
         includeBase64: false,
+        freeStyleCropEnabled: true,
+        avoidEmptySpaceAroundImage: false,
       });
 
       handleProcessImage(image);
@@ -59,10 +59,10 @@ const Home = ({ navigation }: { navigation: any }) => {
     try {
       // TODO: change UI colors to use the theme ones
       const image = await ImagePicker.openPicker({
-        width: 300,
-        height: 300,
         cropping: true,
         includeBase64: false,
+        freeStyleCropEnabled: true,
+        avoidEmptySpaceAroundImage: false,
       });
 
       handleProcessImage(image);
