@@ -1,4 +1,3 @@
-import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import { useEffect, useState } from 'react';
 import {
   Dimensions,
@@ -11,12 +10,12 @@ import {
 import { NativeModules } from 'react-native';
 import { RootStackParamList } from '../../../App';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Appbar, FAB, useTheme } from 'react-native-paper';
+import { Appbar, useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import ValueControl from '../../components/ValueControl/ValueControl';
 const { ImageProcessor } = NativeModules;
 
 const BOTTOM_APPBAR_HEIGHT = 80;
-const MEDIUM_FAB_HEIGHT = 56;
 
 enum ProcessingActions {
   Posterize = 0,
@@ -76,11 +75,11 @@ const ImageProcessing = ({
     }
   };
 
-  const handlePosterizeSliderChange = (values: number[]) => {
+  const handleToneValueSliderChange = (values: number[]) => {
     setToneValues(values[0]);
   };
 
-  const handlePosterizeSliderFinish = (values: number[]) => {
+  const handleToneValueSliderFinish = (values: number[]) => {
     posterizeImage(imageUri, values[0]);
   };
 
@@ -98,23 +97,12 @@ const ImageProcessing = ({
   const aspectRatio = imageSize.width / imageSize.height;
   const containerHeight = containerWidth / aspectRatio;
 
-  const renderCustomMarker = (currentValue: number) => (
-    <View style={styles.markerContainer}>
-      <Text style={styles.markerText}>{currentValue}</Text>
-      <View style={styles.markerCircle} />
-    </View>
-  );
-
   return (
     <ScrollView contentContainerStyle={styles.scrollContentContainer}>
       <View
         style={[
-          {
-            width: containerWidth,
-            height: containerHeight,
-            alignItems: 'center',
-            justifyContent: 'center',
-          },
+          { width: containerWidth, height: containerHeight },
+          styles.imageContainer,
         ]}
       >
         {processedImageUri ? (
@@ -128,20 +116,13 @@ const ImageProcessing = ({
           <Text>No image provided</Text>
         )}
         {selectedAction === ProcessingActions.Posterize && (
-          <MultiSlider
+          <ValueControl
             values={[toneValues]}
+            onChange={handleToneValueSliderChange}
+            onSlidingComplete={handleToneValueSliderFinish}
             min={2}
             max={10}
             step={1}
-            // snapped={true}
-            onValuesChange={handlePosterizeSliderChange}
-            onValuesChangeFinish={handlePosterizeSliderFinish}
-            selectedStyle={{ backgroundColor: 'blue' }}
-            unselectedStyle={{ backgroundColor: 'lightgray' }}
-            markerStyle={{ backgroundColor: 'blue' }}
-            customMarker={({ currentValue }) =>
-              renderCustomMarker(currentValue)
-            }
           />
         )}
       </View>
@@ -169,16 +150,6 @@ const ImageProcessing = ({
           }
           onPress={() => setSelectedAction(ProcessingActions.Threshold)}
         />
-        <FAB
-          mode="flat"
-          size="medium"
-          icon="plus"
-          onPress={() => {}}
-          style={[
-            styles.fab,
-            { top: (BOTTOM_APPBAR_HEIGHT - MEDIUM_FAB_HEIGHT) / 2 },
-          ]}
-        />
       </Appbar>
     </ScrollView>
   );
@@ -191,6 +162,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginHorizontal: 'auto',
   },
+  imageContainer: {
+    marginTop: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'column',
+  },
   image: {
     height: '100%',
     width: '100%',
@@ -200,20 +177,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 20,
-  },
-  markerContainer: {
-    alignItems: 'center',
-  },
-  markerText: {
-    fontSize: 12,
-    marginBottom: 4,
-  },
-  markerCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: 'blue',
   },
   bottom: {
     backgroundColor: 'aquamarine',
@@ -221,10 +184,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-  },
-  fab: {
-    position: 'absolute',
-    right: 16,
   },
 });
 
