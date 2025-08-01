@@ -95,7 +95,12 @@ const Home = ({
         </Button>
       </View>
       <Text>or</Text>
-      <Button textColor="black" mode="outlined" onPress={handleTakePhoto}>
+      <Button
+        icon="camera"
+        textColor="black"
+        mode="outlined"
+        onPress={handleTakePhoto}
+      >
         Take photo
       </Button>
     </View>

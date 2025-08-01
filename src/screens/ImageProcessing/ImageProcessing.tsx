@@ -11,7 +11,17 @@ import {
 import { NativeModules } from 'react-native';
 import { RootStackParamList } from '../../../App';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { Appbar, FAB, useTheme } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const { ImageProcessor } = NativeModules;
+
+const BOTTOM_APPBAR_HEIGHT = 80;
+const MEDIUM_FAB_HEIGHT = 56;
+
+enum ProcessingActions {
+  Posterize = 0,
+  Threshold = 1,
+}
 
 const ImageProcessing = ({
   route,
@@ -19,6 +29,10 @@ const ImageProcessing = ({
   const { imageUri } = route.params;
   const [processedImageUri, setProcessedImageUri] = useState(null);
   const [toneValues, setToneValues] = useState(2);
+  const [selectedAction, setSelectedAction] = useState<number | null>(null);
+
+  const { bottom } = useSafeAreaInsets();
+  const theme = useTheme();
 
   const [imageSize, setImageSize] = useState<{
     width: number;
@@ -55,11 +69,11 @@ const ImageProcessing = ({
     }
   };
 
-  const handleSliderChange = (values: number[]) => {
+  const handlePosterizeSliderChange = (values: number[]) => {
     setToneValues(values[0]);
   };
 
-  const handleSliderFinish = (values: number[]) => {
+  const handlePosterizeSliderFinish = (values: number[]) => {
     posterizeImage(imageUri, values[0]);
   };
 
@@ -92,6 +106,7 @@ const ImageProcessing = ({
             width: containerWidth,
             height: containerHeight,
             alignItems: 'center',
+            justifyContent: 'center',
           },
         ]}
       >
@@ -105,20 +120,53 @@ const ImageProcessing = ({
         ) : (
           <Text>No image provided</Text>
         )}
-        <MultiSlider
-          values={[toneValues]}
-          min={2}
-          max={10}
-          step={1}
-          // snapped={true}
-          onValuesChange={handleSliderChange}
-          onValuesChangeFinish={handleSliderFinish}
-          selectedStyle={{ backgroundColor: 'blue' }}
-          unselectedStyle={{ backgroundColor: 'lightgray' }}
-          markerStyle={{ backgroundColor: 'blue' }}
-          customMarker={({ currentValue }) => renderCustomMarker(currentValue)}
-        />
+        {selectedAction === ProcessingActions.Posterize && (
+          <MultiSlider
+            values={[toneValues]}
+            min={2}
+            max={10}
+            step={1}
+            // snapped={true}
+            onValuesChange={handlePosterizeSliderChange}
+            onValuesChangeFinish={handlePosterizeSliderFinish}
+            selectedStyle={{ backgroundColor: 'blue' }}
+            unselectedStyle={{ backgroundColor: 'lightgray' }}
+            markerStyle={{ backgroundColor: 'blue' }}
+            customMarker={({ currentValue }) =>
+              renderCustomMarker(currentValue)
+            }
+          />
+        )}
       </View>
+      <Appbar
+        style={[
+          styles.bottom,
+          {
+            height: BOTTOM_APPBAR_HEIGHT + bottom,
+            backgroundColor: theme.colors.elevation.level2,
+          },
+        ]}
+        safeAreaInsets={{ bottom }}
+      >
+        <Appbar.Action
+          icon="image-filter-black-white"
+          onPress={() => setSelectedAction(ProcessingActions.Posterize)}
+        />
+        <Appbar.Action
+          icon="sine-wave"
+          onPress={() => setSelectedAction(ProcessingActions.Threshold)}
+        />
+        <FAB
+          mode="flat"
+          size="medium"
+          icon="plus"
+          onPress={() => {}}
+          style={[
+            styles.fab,
+            { top: (BOTTOM_APPBAR_HEIGHT - MEDIUM_FAB_HEIGHT) / 2 },
+          ]}
+        />
+      </Appbar>
     </ScrollView>
   );
 };
@@ -153,6 +201,17 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     backgroundColor: 'blue',
+  },
+  bottom: {
+    backgroundColor: 'aquamarine',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  fab: {
+    position: 'absolute',
+    right: 16,
   },
 });
 
