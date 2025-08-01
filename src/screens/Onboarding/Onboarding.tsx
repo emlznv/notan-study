@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import ImageSlider from '../../components/ImageSlider/ImageSlider';
-import { Button } from 'react-native-paper';
+import { Button, IconButton } from 'react-native-paper';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../../App';
 
-const Onboarding = ({ navigation }: { navigation: any }) => {
+const Onboarding = ({
+  navigation,
+}: NativeStackScreenProps<RootStackParamList, 'Onboarding'>) => {
   const [currentStep, setCurrentStep] = useState(0);
 
   const steps = [
@@ -47,9 +51,14 @@ const Onboarding = ({ navigation }: { navigation: any }) => {
       <Text style={styles.body}>{body}</Text>
       <View style={styles.buttonRow}>
         <Button onPress={handleSkip}>Skip</Button>
-        <Button mode="contained" onPress={handleNext}>
-          Next
-        </Button>
+        <IconButton
+          icon="arrow-right"
+          mode="contained"
+          containerColor="#6200ee"
+          size={30}
+          onPress={handleNext}
+          style={{ marginLeft: 'auto' }}
+        />
       </View>
     </View>
   );
@@ -77,6 +86,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     display: 'flex',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
 });
 

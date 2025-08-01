@@ -3,14 +3,17 @@ import {
   View,
   StyleSheet,
   Text,
-  Image,
   Alert,
   PermissionsAndroid,
 } from 'react-native';
-import { Button } from 'react-native-paper';
+import { Button, IconButton } from 'react-native-paper';
 import ImagePicker, { ImageOrVideo } from 'react-native-image-crop-picker';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../../App';
 
-const Home = ({ navigation }: { navigation: any }) => {
+const Home = ({
+  navigation,
+}: NativeStackScreenProps<RootStackParamList, 'Home'>) => {
   const requestCameraPermission = async () => {
     try {
       const granted = await PermissionsAndroid.request(
@@ -42,10 +45,10 @@ const Home = ({ navigation }: { navigation: any }) => {
     try {
       // TODO: change UI colors to use the theme ones
       const image = await ImagePicker.openCamera({
-        width: 300,
-        height: 300,
         cropping: true,
         includeBase64: false,
+        freeStyleCropEnabled: true,
+        avoidEmptySpaceAroundImage: false,
       });
 
       handleProcessImage(image);
@@ -59,10 +62,10 @@ const Home = ({ navigation }: { navigation: any }) => {
     try {
       // TODO: change UI colors to use the theme ones
       const image = await ImagePicker.openPicker({
-        width: 300,
-        height: 300,
         cropping: true,
         includeBase64: false,
+        freeStyleCropEnabled: true,
+        avoidEmptySpaceAroundImage: false,
       });
 
       handleProcessImage(image);
@@ -82,16 +85,22 @@ const Home = ({ navigation }: { navigation: any }) => {
     <View style={styles.container}>
       <Text>Lorem Ipsum Title</Text>
       <View style={styles.uploadContainer}>
-        <Image
-          style={styles.image}
-          source={require('../../assets/image-upload.png')}
+        <IconButton
+          iconColor="black"
+          icon="image-plus"
+          style={{ margin: 20 }}
+          size={100}
+          onPress={handlePickFromGallery}
         />
-        <Button mode="contained" onPress={handlePickFromGallery}>
-          Upload image
-        </Button>
+        <Text>Upload image</Text>
       </View>
       <Text>or</Text>
-      <Button textColor="black" mode="outlined" onPress={handleTakePhoto}>
+      <Button
+        icon="camera"
+        textColor="black"
+        mode="outlined"
+        onPress={handleTakePhoto}
+      >
         Take photo
       </Button>
     </View>
@@ -107,9 +116,10 @@ const styles = StyleSheet.create({
   uploadContainer: {
     borderWidth: 2,
     borderRadius: 10,
-    borderColor: 'purple',
+    borderColor: 'gray',
     borderStyle: 'dotted',
     padding: 30,
+    alignItems: 'center',
   },
   image: {
     width: 200,
