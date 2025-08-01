@@ -34,6 +34,13 @@ const ImageProcessing = ({
   const { bottom } = useSafeAreaInsets();
   const theme = useTheme();
 
+  useEffect(() => {
+    if (selectedAction === ProcessingActions.Posterize && !processedImageUri) {
+      posterizeImage(imageUri, toneValues);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedAction]);
+
   const [imageSize, setImageSize] = useState<{
     width: number;
     height: number;
@@ -150,10 +157,16 @@ const ImageProcessing = ({
       >
         <Appbar.Action
           icon="image-filter-black-white"
+          iconColor={
+            selectedAction === ProcessingActions.Posterize ? 'orange' : 'white'
+          }
           onPress={() => setSelectedAction(ProcessingActions.Posterize)}
         />
         <Appbar.Action
           icon="sine-wave"
+          iconColor={
+            selectedAction === ProcessingActions.Threshold ? 'orange' : 'white'
+          }
           onPress={() => setSelectedAction(ProcessingActions.Threshold)}
         />
         <FAB

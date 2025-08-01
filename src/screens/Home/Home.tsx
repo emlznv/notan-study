@@ -3,11 +3,10 @@ import {
   View,
   StyleSheet,
   Text,
-  Image,
   Alert,
   PermissionsAndroid,
 } from 'react-native';
-import { Button } from 'react-native-paper';
+import { Button, IconButton } from 'react-native-paper';
 import ImagePicker, { ImageOrVideo } from 'react-native-image-crop-picker';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../../App';
@@ -86,13 +85,14 @@ const Home = ({
     <View style={styles.container}>
       <Text>Lorem Ipsum Title</Text>
       <View style={styles.uploadContainer}>
-        <Image
-          style={styles.image}
-          source={require('../../assets/image-upload.png')}
+        <IconButton
+          iconColor="black"
+          icon="image-plus"
+          style={{ margin: 20 }}
+          size={100}
+          onPress={handlePickFromGallery}
         />
-        <Button mode="contained" onPress={handlePickFromGallery}>
-          Upload image
-        </Button>
+        <Text>Upload image</Text>
       </View>
       <Text>or</Text>
       <Button
@@ -116,9 +116,10 @@ const styles = StyleSheet.create({
   uploadContainer: {
     borderWidth: 2,
     borderRadius: 10,
-    borderColor: 'purple',
+    borderColor: 'gray',
     borderStyle: 'dotted',
     padding: 30,
+    alignItems: 'center',
   },
   image: {
     width: 200,
