@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import {
   Dimensions,
   Image,
-  ScrollView,
+  ImageStyle,
+  StyleProp,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+import { SegmentedButtons } from 'react-native-paper';
 import { NativeModules } from 'react-native';
 import { RootStackParamList } from '../../../App';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -15,11 +17,17 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ValueControl from '../../components/ValueControl/ValueControl';
 const { ImageProcessor } = NativeModules;
 
-const BOTTOM_APPBAR_HEIGHT = 80;
+const BOTTOM_APPBAR_HEIGHT = 70;
 
 enum ProcessingActions {
   Posterize = 0,
   Threshold = 1,
+}
+
+enum ViewMode {
+  Original = 'original',
+  Processed = 'processed',
+  Both = 'both',
 }
 
 const ImageProcessing = ({
@@ -27,25 +35,27 @@ const ImageProcessing = ({
 }: NativeStackScreenProps<RootStackParamList, 'ImageProcessing'>) => {
   const { imageUri } = route.params;
   const [processedImageUri, setProcessedImageUri] = useState(null);
-  const [toneValues, setToneValues] = useState(2);
-  const [selectedAction, setSelectedAction] = useState<number | null>(null);
+  const [toneValues, setToneValues] = useState(3);
+  const [selectedAction, setSelectedAction] = useState<number | null>(
+    ProcessingActions.Posterize,
+  );
+  const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Processed);
 
   const { bottom } = useSafeAreaInsets();
   const theme = useTheme();
 
   useEffect(() => {
-    if (selectedAction === ProcessingActions.Posterize && !processedImageUri) {
-      posterizeImage(imageUri, toneValues);
-    }
+    calculateImageSize();
+    posterizeImage(imageUri, toneValues);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedAction]);
+  }, []);
 
   const [imageSize, setImageSize] = useState<{
     width: number;
     height: number;
   } | null>(null);
 
-  useEffect(() => {
+  const calculateImageSize = () => {
     if (!imageUri) {
       setImageSize(null);
       return;
@@ -61,7 +71,7 @@ const ImageProcessing = ({
         setImageSize(null);
       },
     );
-  }, [imageUri]);
+  };
 
   const posterizeImage = async (uri: string, tones: number) => {
     try {
@@ -83,48 +93,97 @@ const ImageProcessing = ({
     posterizeImage(imageUri, values[0]);
   };
 
-  if (!imageUri) {
-    return null;
-  }
-
-  if (!imageSize) {
-    return <Text>Loading image...</Text>;
-  }
+  if (!imageUri) return null;
+  if (!imageSize) return <Text>Loading image...</Text>;
 
   const screenWidth = Dimensions.get('window').width;
   const containerWidth = screenWidth * 0.9;
 
   const aspectRatio = imageSize.width / imageSize.height;
-  const containerHeight = containerWidth / aspectRatio;
+  const screenHeight = Dimensions.get('window').height;
+  const availableHeight = screenHeight - (BOTTOM_APPBAR_HEIGHT + bottom + 180);
+
+  const containerHeight = Math.min(
+    containerWidth / aspectRatio,
+    availableHeight,
+  );
+
+  const isPortrait = imageSize.height > imageSize.width;
+
+  const renderImage = (isProcessed: boolean, style?: StyleProp<ImageStyle>) => {
+    const uri = isProcessed ? `file://${processedImageUri}` : imageUri;
+    return <Image source={{ uri }} style={[styles.image, style]} />;
+  };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContentContainer}>
+    <View style={styles.container}>
+      <SegmentedButtons
+        value={viewMode}
+        density="small"
+        style={{ width: 50, justifyContent: 'center', marginTop: 20 }}
+        onValueChange={value => setViewMode(value)}
+        buttons={[
+          {
+            value: ViewMode.Original,
+            icon: 'image',
+          },
+          {
+            value: ViewMode.Processed,
+            icon: 'image-edit',
+          },
+          {
+            value: ViewMode.Both,
+            icon: 'compare',
+          },
+        ]}
+      />
+
       <View
         style={[
-          { width: containerWidth, height: containerHeight },
+          {
+            width: containerWidth,
+            height: isPortrait ? containerHeight : '70%',
+          },
           styles.imageContainer,
         ]}
       >
-        {processedImageUri ? (
-          <Image
-            source={{ uri: 'file://' + processedImageUri }}
-            style={styles.image}
-          />
-        ) : imageUri ? (
-          <Image source={{ uri: imageUri }} style={styles.image} />
-        ) : (
-          <Text>No image provided</Text>
+        {viewMode === ViewMode.Original && renderImage(false)}
+        {viewMode === ViewMode.Processed &&
+          processedImageUri &&
+          renderImage(true)}
+        {viewMode === ViewMode.Both && (
+          <View
+            style={[
+              {
+                flex: 1,
+                gap: 10,
+                width: '100%',
+                flexDirection: isPortrait ? 'row' : 'column',
+              },
+            ]}
+          >
+            {renderImage(
+              false,
+              isPortrait ? styles.imageBothColumn : styles.imageBothRow,
+            )}
+            {processedImageUri &&
+              renderImage(
+                true,
+                isPortrait ? styles.imageBothColumn : styles.imageBothRow,
+              )}
+          </View>
         )}
-        {selectedAction === ProcessingActions.Posterize && (
-          <ValueControl
-            values={[toneValues]}
-            onChange={handleToneValueSliderChange}
-            onSlidingComplete={handleToneValueSliderFinish}
-            min={2}
-            max={10}
-            step={1}
-          />
-        )}
+        {selectedAction === ProcessingActions.Posterize &&
+          viewMode !== ViewMode.Original && (
+            <ValueControl
+              values={[toneValues]}
+              onChange={handleToneValueSliderChange}
+              onSlidingComplete={handleToneValueSliderFinish}
+              min={2}
+              max={10}
+              step={1}
+            />
+          )}
       </View>
       <Appbar
         style={[
@@ -151,7 +210,7 @@ const ImageProcessing = ({
           onPress={() => setSelectedAction(ProcessingActions.Threshold)}
         />
       </Appbar>
-    </ScrollView>
+    </View>
   );
 };
 
@@ -159,18 +218,27 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 'auto',
+    justifyContent: 'flex-start',
   },
   imageContainer: {
-    marginTop: 50,
+    marginTop: 30,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'column',
   },
   image: {
-    height: '100%',
     width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
+  },
+  imageBothColumn: {
+    flex: 1,
+    width: '100%',
+    resizeMode: 'contain',
+  },
+  imageBothRow: {
+    flex: 1,
+    height: '100%',
     resizeMode: 'contain',
   },
   scrollContentContainer: {
