@@ -10,8 +10,8 @@ class ImageProcessorModule(reactContext: ReactApplicationContext) : ReactContext
 
     override fun getName() = "ImageProcessor"
 
-    @ReactMethod
-    fun processImage(imagePath: String, tones: Int, promise: Promise) {
+   @ReactMethod
+    fun processImage(imagePath: String, tones: Int, simplicity: Int, promise: Promise) {
         try {
             if (tones <= 0) {
                 promise.reject("INVALID_TONES", "Tones must be greater than 0")
@@ -44,7 +44,18 @@ class ImageProcessorModule(reactContext: ReactApplicationContext) : ReactContext
                 matColor
             }
 
-            val resultPath = processAndSave(matToProcess, tones)
+            // Apply simplicity-based smoothing before processing
+            val smoothedMat = if (simplicity > 0) {
+                val blurStrength = simplicity.toDouble()
+                val smoothed = Mat()
+                Imgproc.bilateralFilter(matToProcess, smoothed, 9, blurStrength * 10, blurStrength * 10)
+                matToProcess.release()  // release old mat
+                smoothed
+            } else {
+                matToProcess
+            }
+
+            val resultPath = processAndSave(smoothedMat, tones)
             if (resultPath == null) {
                 promise.reject("PROCESS_ERROR", "Image processing failed")
             } else {

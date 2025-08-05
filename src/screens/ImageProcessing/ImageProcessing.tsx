@@ -36,6 +36,7 @@ const ImageProcessing = ({
   const { imageUri } = route.params;
   const [processedImageUri, setProcessedImageUri] = useState(null);
   const [toneValues, setToneValues] = useState(3);
+  const [simplicity, setSimplicity] = useState(0);
   const [selectedAction, setSelectedAction] = useState<number | null>(
     ProcessingActions.Posterize,
   );
@@ -46,7 +47,7 @@ const ImageProcessing = ({
 
   useEffect(() => {
     calculateImageSize();
-    posterizeImage(imageUri, toneValues);
+    processImage(imageUri, toneValues, simplicity);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -73,9 +74,17 @@ const ImageProcessing = ({
     );
   };
 
-  const posterizeImage = async (uri: string, tones: number) => {
+  const processImage = async (
+    uri: string,
+    tones: number,
+    simplicity: number,
+  ) => {
     try {
-      const processedUri = await ImageProcessor.processImage(uri, tones);
+      const processedUri = await ImageProcessor.processImage(
+        uri,
+        tones,
+        simplicity,
+      );
       if (!processedUri) {
         console.warn('Warning: Processed URI is null or undefined');
       }
@@ -90,7 +99,15 @@ const ImageProcessing = ({
   };
 
   const handleToneValueSliderFinish = (values: number[]) => {
-    posterizeImage(imageUri, values[0]);
+    processImage(imageUri, values[0], simplicity);
+  };
+
+  const handleSimplicitySliderChange = (values: number[]) => {
+    setSimplicity(values[0]);
+  };
+
+  const handleSimplicitySliderFinish = (values: number[]) => {
+    processImage(imageUri, toneValues, values[0]);
   };
 
   if (!imageUri) return null;
@@ -175,14 +192,26 @@ const ImageProcessing = ({
         )}
         {selectedAction === ProcessingActions.Posterize &&
           viewMode !== ViewMode.Original && (
-            <ValueControl
-              values={[toneValues]}
-              onChange={handleToneValueSliderChange}
-              onSlidingComplete={handleToneValueSliderFinish}
-              min={2}
-              max={10}
-              step={1}
-            />
+            <View>
+              <ValueControl
+                values={[toneValues]}
+                onChange={handleToneValueSliderChange}
+                onSlidingComplete={handleToneValueSliderFinish}
+                min={2}
+                max={10}
+                step={1}
+                label="Tone values"
+              />
+              <ValueControl
+                values={[simplicity]}
+                onChange={handleSimplicitySliderChange}
+                onSlidingComplete={handleSimplicitySliderFinish}
+                min={0}
+                max={10}
+                step={1}
+                label="Simplicity"
+              />
+            </View>
           )}
       </View>
       <Appbar
@@ -240,11 +269,6 @@ const styles = StyleSheet.create({
     flex: 1,
     height: '100%',
     resizeMode: 'contain',
-  },
-  scrollContentContainer: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   bottom: {
     backgroundColor: 'aquamarine',

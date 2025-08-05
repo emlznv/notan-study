@@ -10,6 +10,7 @@ const ValueControl = ({
   step,
   onChange,
   onSlidingComplete,
+  label,
 }: ValueControlProps) => {
   const renderCustomMarker = (currentValue: number) => (
     <View style={styles.markerContainer}>
@@ -19,21 +20,32 @@ const ValueControl = ({
   );
 
   return (
-    <MultiSlider
-      values={values}
-      min={min}
-      max={max}
-      step={step}
-      onValuesChange={onChange}
-      onValuesChangeFinish={onSlidingComplete}
-      selectedStyle={styles.selectedArea}
-      unselectedStyle={styles.unselectedArea}
-      customMarker={({ currentValue }) => renderCustomMarker(currentValue)}
-    />
+    <View style={styles.container}>
+      {label && <Text style={styles.sliderLabel}>{label}</Text>}
+      <MultiSlider
+        key={label}
+        sliderLength={200}
+        values={values}
+        min={min}
+        max={max}
+        step={step}
+        onValuesChange={onChange}
+        onValuesChangeFinish={onSlidingComplete}
+        selectedStyle={styles.selectedArea}
+        unselectedStyle={styles.unselectedArea}
+        customMarker={({ currentValue }) => renderCustomMarker(currentValue)}
+      />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '90%',
+  },
   markerContainer: {
     alignItems: 'center',
   },
@@ -52,6 +64,13 @@ const styles = StyleSheet.create({
   },
   unselectedArea: {
     backgroundColor: 'lightgray',
+  },
+  sliderLabel: {
+    fontSize: 13,
+    margin: 0,
+    padding: 0,
+    textAlign: 'left',
+    marginRight: 10,
   },
 });
 

@@ -5,4 +5,5 @@ export interface ValueControlProps {
     min: number;
     max: number;
     step: number;
+    label?: string
 }
