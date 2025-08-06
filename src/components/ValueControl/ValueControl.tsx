@@ -11,6 +11,8 @@ const ValueControl = ({
   onChange,
   onSlidingComplete,
   label,
+  snapped = false,
+  sliderLength = 200,
 }: ValueControlProps) => {
   const renderCustomMarker = (currentValue: number) => (
     <View style={styles.markerContainer}>
@@ -24,7 +26,8 @@ const ValueControl = ({
       {label && <Text style={styles.sliderLabel}>{label}</Text>}
       <MultiSlider
         key={label}
-        sliderLength={200}
+        sliderLength={sliderLength}
+        snapped={snapped}
         values={values}
         min={min}
         max={max}

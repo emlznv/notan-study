@@ -67,6 +67,71 @@ class ImageProcessorModule(reactContext: ReactApplicationContext) : ReactContext
         }
     }
 
+    @ReactMethod
+    fun getHistogram(imagePath: String, promise: Promise) {
+        try {
+            val cleanPath = if (imagePath.startsWith("file://")) imagePath.removePrefix("file://") else imagePath
+
+            val matColor = Imgcodecs.imread(cleanPath)
+            if (matColor.empty()) {
+                promise.reject("IMAGE_LOAD_FAILED", "Failed to load image at path: $imagePath")
+                return
+            }
+
+            // Convert to grayscale
+            val matGray = Mat()
+            Imgproc.cvtColor(matColor, matGray, Imgproc.COLOR_BGR2GRAY)
+
+            val histSize = MatOfInt(256)  // 256 bins
+            val channels = MatOfInt(0)    // grayscale channel
+            val histRange = MatOfFloat(0f, 256f)
+            val hist = Mat()
+
+            Imgproc.calcHist(listOf(matGray), channels, Mat(), hist, histSize, histRange)
+
+            // Convert histogram Mat to a Kotlin List<Float> to send back to JS
+            val histList = mutableListOf<Float>()
+            for (i in 0 until hist.rows()) {
+                histList.add(hist.get(i, 0)[0].toFloat())
+            }
+
+            // Send histogram data back
+            promise.resolve(Arguments.makeNativeArray(histList))
+        } catch (e: Exception) {
+            e.printStackTrace()
+            promise.reject("HISTOGRAM_ERROR", e.message)
+        }
+    }
+
+    @ReactMethod
+    fun thresholdImage(imagePath: String, thresholdValue: Double, promise: Promise) {
+        try {
+            val cleanPath = if (imagePath.startsWith("file://")) imagePath.removePrefix("file://") else imagePath
+
+            val matColor = Imgcodecs.imread(cleanPath)
+            if (matColor.empty()) {
+                promise.reject("IMAGE_LOAD_FAILED", "Failed to load image at path: $imagePath")
+                return
+            }
+
+            val matGray = Mat()
+            Imgproc.cvtColor(matColor, matGray, Imgproc.COLOR_BGR2GRAY)
+
+            val matThresh = Mat()
+            Imgproc.threshold(matGray, matThresh, thresholdValue, 255.0, Imgproc.THRESH_BINARY)
+
+            val outputFile = File(reactApplicationContext.cacheDir, "threshold_${java.util.UUID.randomUUID()}.jpg")
+            Imgcodecs.imwrite(outputFile.absolutePath, matThresh)
+
+            promise.resolve(outputFile.absolutePath)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            promise.reject("PROCESS_ERROR", e.message)
+        }
+    }
+
+
+
     // Helper function to process and save the image, returns the output file path
     private fun processAndSave(matColor: Mat, tones: Int): String? {
         // Convert to grayscale (1 channel)

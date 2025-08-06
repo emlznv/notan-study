@@ -1,20 +1,14 @@
 import { useEffect, useState } from 'react';
-import {
-  Dimensions,
-  Image,
-  ImageStyle,
-  StyleProp,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import { SegmentedButtons } from 'react-native-paper';
 import { NativeModules } from 'react-native';
 import { RootStackParamList } from '../../../App';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Appbar, useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import ValueControl from '../../components/ValueControl/ValueControl';
+import ImagePreview from '../../components/ImagePreview/ImagePreview';
+import PosterizeControls from '../../components/PosterizeControls/PosterizeControls';
+import ThresholdControls from '../../components/ThresholdControls/ThresholdControls';
 const { ImageProcessor } = NativeModules;
 
 const BOTTOM_APPBAR_HEIGHT = 70;
@@ -24,7 +18,7 @@ enum ProcessingActions {
   Threshold = 1,
 }
 
-enum ViewMode {
+export enum ViewMode {
   Original = 'original',
   Processed = 'processed',
   Both = 'both',
@@ -37,6 +31,8 @@ const ImageProcessing = ({
   const [processedImageUri, setProcessedImageUri] = useState(null);
   const [toneValues, setToneValues] = useState(3);
   const [simplicity, setSimplicity] = useState(0);
+  const [histogram, setHistogram] = useState<number[]>([]);
+  const [threshold, setThreshold] = useState(128);
   const [selectedAction, setSelectedAction] = useState<number | null>(
     ProcessingActions.Posterize,
   );
@@ -50,6 +46,18 @@ const ImageProcessing = ({
     processImage(imageUri, toneValues, simplicity);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (imageUri) {
+      ImageProcessor.getHistogram(imageUri)
+        .then((hist: number[]) => {
+          setHistogram(hist);
+        })
+        .catch((e: any) => {
+          console.error('Failed to load histogram', e);
+        });
+    }
+  }, [imageUri]);
 
   const [imageSize, setImageSize] = useState<{
     width: number;
@@ -110,27 +118,28 @@ const ImageProcessing = ({
     processImage(imageUri, toneValues, values[0]);
   };
 
+  const handleThresholdSliderChange = (values: number[]) => {
+    setThreshold(values[0]);
+    //  processImage(imageUri, toneValues, values[0], simplicity);
+  };
+
+  const handleThresholdSliderFinish = async (values: number[]) => {
+    const newThreshold = values[0];
+    setThreshold(newThreshold);
+
+    try {
+      // const processedUri = await ImageProcessor.applyThreshold(
+      //   imageUri,
+      //   newThreshold,
+      // );
+      // setProcessedImageUri(processedUri);
+    } catch (error) {
+      console.error('Threshold processing failed:', error);
+    }
+  };
+
   if (!imageUri) return null;
   if (!imageSize) return <Text>Loading image...</Text>;
-
-  const screenWidth = Dimensions.get('window').width;
-  const containerWidth = screenWidth * 0.9;
-
-  const aspectRatio = imageSize.width / imageSize.height;
-  const screenHeight = Dimensions.get('window').height;
-  const availableHeight = screenHeight - (BOTTOM_APPBAR_HEIGHT + bottom + 180);
-
-  const containerHeight = Math.min(
-    containerWidth / aspectRatio,
-    availableHeight,
-  );
-
-  const isPortrait = imageSize.height > imageSize.width;
-
-  const renderImage = (isProcessed: boolean, style?: StyleProp<ImageStyle>) => {
-    const uri = isProcessed ? `file://${processedImageUri}` : imageUri;
-    return <Image source={{ uri }} style={[styles.image, style]} />;
-  };
 
   return (
     <View style={styles.container}>
@@ -154,66 +163,31 @@ const ImageProcessing = ({
           },
         ]}
       />
-
-      <View
-        style={[
-          {
-            width: containerWidth,
-            height: isPortrait ? containerHeight : '70%',
-          },
-          styles.imageContainer,
-        ]}
-      >
-        {viewMode === ViewMode.Original && renderImage(false)}
-        {viewMode === ViewMode.Processed &&
-          processedImageUri &&
-          renderImage(true)}
-        {viewMode === ViewMode.Both && (
-          <View
-            style={[
-              {
-                flex: 1,
-                gap: 10,
-                width: '100%',
-                flexDirection: isPortrait ? 'row' : 'column',
-              },
-            ]}
-          >
-            {renderImage(
-              false,
-              isPortrait ? styles.imageBothColumn : styles.imageBothRow,
-            )}
-            {processedImageUri &&
-              renderImage(
-                true,
-                isPortrait ? styles.imageBothColumn : styles.imageBothRow,
-              )}
-          </View>
+      <ImagePreview
+        imageUri={imageUri}
+        processedImageUri={processedImageUri ?? ''}
+        viewMode={viewMode}
+        imageSize={imageSize}
+      />
+      {selectedAction === ProcessingActions.Posterize &&
+        viewMode !== ViewMode.Original && (
+          <PosterizeControls
+            toneValues={toneValues}
+            simplicity={simplicity}
+            onToneChange={handleToneValueSliderChange}
+            onToneFinish={handleToneValueSliderFinish}
+            onSimplicityChange={handleSimplicitySliderChange}
+            onSimplicityFinish={handleSimplicitySliderFinish}
+          />
         )}
-        {selectedAction === ProcessingActions.Posterize &&
-          viewMode !== ViewMode.Original && (
-            <View>
-              <ValueControl
-                values={[toneValues]}
-                onChange={handleToneValueSliderChange}
-                onSlidingComplete={handleToneValueSliderFinish}
-                min={2}
-                max={10}
-                step={1}
-                label="Tone values"
-              />
-              <ValueControl
-                values={[simplicity]}
-                onChange={handleSimplicitySliderChange}
-                onSlidingComplete={handleSimplicitySliderFinish}
-                min={0}
-                max={10}
-                step={1}
-                label="Simplicity"
-              />
-            </View>
-          )}
-      </View>
+      {selectedAction === ProcessingActions.Threshold && (
+        <ThresholdControls
+          histogram={histogram}
+          threshold={threshold}
+          onThresholdChange={handleThresholdSliderChange}
+          onThresholdFinish={handleThresholdSliderFinish}
+        />
+      )}
       <Appbar
         style={[
           styles.bottom,
@@ -248,27 +222,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'flex-start',
-  },
-  imageContainer: {
-    marginTop: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'column',
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'contain',
-  },
-  imageBothColumn: {
-    flex: 1,
-    width: '100%',
-    resizeMode: 'contain',
-  },
-  imageBothRow: {
-    flex: 1,
-    height: '100%',
-    resizeMode: 'contain',
   },
   bottom: {
     backgroundColor: 'aquamarine',
