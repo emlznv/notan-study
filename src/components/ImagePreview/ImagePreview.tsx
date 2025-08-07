@@ -8,9 +8,6 @@ import {
 } from 'react-native';
 import { ImagePreviewProps } from './ImagePreview.types';
 import { ViewMode } from '../../screens/ImageProcessing/ImageProcessing';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-const BOTTOM_APPBAR_HEIGHT = 70;
 
 const ImagePreview = ({
   imageUri,
@@ -18,87 +15,84 @@ const ImagePreview = ({
   viewMode,
   imageSize,
 }: ImagePreviewProps) => {
-  const { bottom } = useSafeAreaInsets();
-
   const renderImage = (isProcessed: boolean, style?: StyleProp<ImageStyle>) => {
     const uri = isProcessed ? `file://${processedImageUri}` : imageUri;
     return <Image source={{ uri }} style={[styles.image, style]} />;
   };
 
   const screenWidth = Dimensions.get('window').width;
-
   const containerWidth = screenWidth * 0.9;
-
-  const aspectRatio = imageSize.width / imageSize.height;
-  const screenHeight = Dimensions.get('window').height;
-  const availableHeight = screenHeight - (BOTTOM_APPBAR_HEIGHT + bottom + 180);
-
-  const containerHeight = Math.min(
-    containerWidth / aspectRatio,
-    availableHeight,
-  );
-
   const isPortrait = imageSize.height > imageSize.width;
+
+  const aspectRatio = isPortrait
+    ? imageSize.width / imageSize.height
+    : imageSize.height / imageSize.width;
+
+  const maxHeight = Math.min(containerWidth / aspectRatio, 550);
   return (
-    <View
-      style={[
-        {
-          width: containerWidth,
-          height: isPortrait ? containerHeight : '60%',
-        },
-        styles.imageContainer,
-      ]}
-    >
-      {viewMode === ViewMode.Original && renderImage(false)}
-      {viewMode === ViewMode.Processed &&
-        processedImageUri &&
-        renderImage(true)}
-      {viewMode === ViewMode.Both && (
-        <View
-          style={[
-            {
-              flex: 1,
-              gap: 10,
-              width: '100%',
-              flexDirection: isPortrait ? 'row' : 'column',
-            },
-          ]}
-        >
-          {renderImage(
-            false,
-            isPortrait ? styles.imageBothColumn : styles.imageBothRow,
-          )}
-          {processedImageUri &&
-            renderImage(
-              true,
-              isPortrait ? styles.imageBothColumn : styles.imageBothRow,
-            )}
-        </View>
-      )}
+    <View style={styles.previewWrapper}>
+      <View
+        style={[
+          styles.imageContainer,
+          {
+            width: containerWidth,
+            aspectRatio,
+            maxHeight,
+          },
+        ]}
+      >
+        {viewMode === ViewMode.Original && renderImage(false)}
+        {viewMode === ViewMode.Processed &&
+          processedImageUri &&
+          renderImage(true)}
+        {viewMode === ViewMode.Both && (
+          <View
+            style={[
+              styles.imageBothContainer,
+              isPortrait ? styles.containerRow : styles.containerColumn,
+            ]}
+          >
+            {renderImage(false, styles.imageBoth)}
+            {processedImageUri && renderImage(true, styles.imageBoth)}
+          </View>
+        )}
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  imageContainer: {
+  previewWrapper: {
     marginTop: 30,
     alignItems: 'center',
+    justifyContent: 'flex-start',
+    width: '100%',
+  },
+  imageContainer: {
+    alignSelf: 'center',
+    overflow: 'hidden',
     justifyContent: 'center',
-    flexDirection: 'column',
+    alignItems: 'center',
   },
   image: {
     width: '100%',
     height: '100%',
     resizeMode: 'contain',
   },
-  imageBothColumn: {
+  imageBothContainer: {
     flex: 1,
     width: '100%',
-    resizeMode: 'contain',
+    gap: 10,
   },
-  imageBothRow: {
+  containerRow: {
+    flexDirection: 'row',
+  },
+  containerColumn: {
+    flexDirection: 'column',
+  },
+  imageBoth: {
     flex: 1,
-    height: '100%',
+    width: '100%',
     resizeMode: 'contain',
   },
 });

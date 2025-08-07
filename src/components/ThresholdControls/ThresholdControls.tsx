@@ -1,6 +1,6 @@
-import { Dimensions, View } from 'react-native';
-import ValueControl from '../ValueControl/ValueControl';
+import { Dimensions, StyleSheet, View } from 'react-native';
 import { ThresholdControlProps } from './ThresholdControls.types';
+import ValueControl from '../ValueControl/ValueControl';
 
 const ThresholdControls = ({
   histogram,
@@ -9,49 +9,70 @@ const ThresholdControls = ({
   onThresholdFinish,
 }: ThresholdControlProps) => {
   const screenWidth = Dimensions.get('window').width;
-  const histogramWidth = screenWidth * 0.9; // 90% of screen width
-  const histogramBins = histogram.length; // Usually 256
-  const barWidth = histogramWidth / histogramBins;
+  const histogramWidth = screenWidth * 0.9;
+  const barCount = histogram.length;
+  const barWidth = histogramWidth / barCount;
+
+  // Clamp values so each threshold is at least 1 apart
+  const clampThresholds = (values: number[]) => {
+    const sorted = [...values].sort((a, b) => a - b);
+    for (let i = 1; i < sorted.length; i++) {
+      if (sorted[i] <= sorted[i - 1]) {
+        sorted[i] = sorted[i - 1] + 1;
+      }
+    }
+    // Clamp to max
+    return sorted.map(v => Math.max(0, Math.min(255, v)));
+  };
+
+  const handleChange = (values: number[]) => {
+    onThresholdChange(clampThresholds(values));
+  };
+  const handleFinish = (values: number[]) => {
+    onThresholdFinish(clampThresholds(values));
+  };
 
   return (
-    <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'flex-end',
-          height: 100,
-          marginVertical: 10,
-          width: histogramWidth,
-        }}
-      >
+    <>
+      <View style={[styles.histogramRow, { width: histogramWidth }]}>
         {histogram.map((value, index) => {
-          const barHeight = Math.min(value / 1000, 100); // scale down to fit view
+          const barHeight = Math.min(value / 500, 100); // tweak divisor to scale height
+          const isThreshold = threshold.includes(index);
+          const barColor = isThreshold
+            ? 'orange'
+            : `rgb(${index},${index},${index})`;
           return (
             <View
               key={index}
               style={{
                 width: barWidth,
                 height: barHeight,
-                backgroundColor:
-                  index === threshold
-                    ? 'orange'
-                    : `rgb(${index}, ${index}, ${index})`,
+                backgroundColor: barColor,
+                borderRadius: 2 as number,
               }}
             />
           );
         })}
       </View>
       <ValueControl
-        values={[threshold]}
+        values={threshold}
         min={0}
         max={255}
-        onChange={onThresholdChange}
-        onSlidingComplete={onThresholdFinish}
         step={1}
-        snapped
-        sliderLength={histogramWidth}
+        onChange={handleChange}
+        onSlidingComplete={handleFinish}
+        showThumbWithValue={false}
       />
-    </View>
+    </>
   );
 };
 export default ThresholdControls;
+
+const styles = StyleSheet.create({
+  histogramRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    height: 100,
+    marginVertical: 10,
+  },
+});

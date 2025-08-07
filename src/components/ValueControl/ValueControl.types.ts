@@ -6,6 +6,5 @@ export interface ValueControlProps {
     max: number;
     step: number;
     label?: string
-    snapped?: boolean;
-    sliderLength?: number;
+    showThumbWithValue?: boolean;
 }

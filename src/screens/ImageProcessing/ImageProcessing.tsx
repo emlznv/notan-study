@@ -28,17 +28,18 @@ const ImageProcessing = ({
   route,
 }: NativeStackScreenProps<RootStackParamList, 'ImageProcessing'>) => {
   const { imageUri } = route.params;
+  const { bottom } = useSafeAreaInsets();
+
   const [processedImageUri, setProcessedImageUri] = useState(null);
   const [toneValues, setToneValues] = useState(3);
   const [simplicity, setSimplicity] = useState(0);
   const [histogram, setHistogram] = useState<number[]>([]);
-  const [threshold, setThreshold] = useState(128);
+  const [thresholdValues, setThresholdValues] = useState<number[]>([85, 170]);
   const [selectedAction, setSelectedAction] = useState<number | null>(
     ProcessingActions.Posterize,
   );
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Processed);
 
-  const { bottom } = useSafeAreaInsets();
   const theme = useTheme();
 
   useEffect(() => {
@@ -58,6 +59,16 @@ const ImageProcessing = ({
         });
     }
   }, [imageUri]);
+
+  useEffect(() => {
+    const steps = toneValues - 1;
+    const stepSize = Math.floor(256 / toneValues);
+    const newThresholds = Array.from(
+      { length: steps },
+      (_, i) => (i + 1) * stepSize,
+    );
+    setThresholdValues(newThresholds);
+  }, [toneValues]);
 
   const [imageSize, setImageSize] = useState<{
     width: number;
@@ -119,13 +130,12 @@ const ImageProcessing = ({
   };
 
   const handleThresholdSliderChange = (values: number[]) => {
-    setThreshold(values[0]);
+    setThresholdValues(values);
     //  processImage(imageUri, toneValues, values[0], simplicity);
   };
 
   const handleThresholdSliderFinish = async (values: number[]) => {
-    const newThreshold = values[0];
-    setThreshold(newThreshold);
+    setThresholdValues(values);
 
     try {
       // const processedUri = await ImageProcessor.applyThreshold(
@@ -142,52 +152,64 @@ const ImageProcessing = ({
   if (!imageSize) return <Text>Loading image...</Text>;
 
   return (
-    <View style={styles.container}>
-      <SegmentedButtons
-        value={viewMode}
-        density="small"
-        style={{ width: 50, justifyContent: 'center', marginTop: 20 }}
-        onValueChange={value => setViewMode(value)}
-        buttons={[
-          {
-            value: ViewMode.Original,
-            icon: 'image',
-          },
-          {
-            value: ViewMode.Processed,
-            icon: 'image-edit',
-          },
-          {
-            value: ViewMode.Both,
-            icon: 'compare',
-          },
-        ]}
-      />
-      <ImagePreview
-        imageUri={imageUri}
-        processedImageUri={processedImageUri ?? ''}
-        viewMode={viewMode}
-        imageSize={imageSize}
-      />
-      {selectedAction === ProcessingActions.Posterize &&
-        viewMode !== ViewMode.Original && (
-          <PosterizeControls
-            toneValues={toneValues}
-            simplicity={simplicity}
-            onToneChange={handleToneValueSliderChange}
-            onToneFinish={handleToneValueSliderFinish}
-            onSimplicityChange={handleSimplicitySliderChange}
-            onSimplicityFinish={handleSimplicitySliderFinish}
-          />
-        )}
-      {selectedAction === ProcessingActions.Threshold && (
-        <ThresholdControls
-          histogram={histogram}
-          threshold={threshold}
-          onThresholdChange={handleThresholdSliderChange}
-          onThresholdFinish={handleThresholdSliderFinish}
+    <View
+      style={[
+        styles.container,
+        { paddingBottom: BOTTOM_APPBAR_HEIGHT + bottom },
+      ]}
+    >
+      <View style={styles.topBar}>
+        <SegmentedButtons
+          value={viewMode}
+          density="small"
+          style={{ width: 50, justifyContent: 'center', marginTop: 20 }}
+          onValueChange={value => setViewMode(value)}
+          buttons={[
+            {
+              value: ViewMode.Original,
+              icon: 'image',
+            },
+            {
+              value: ViewMode.Processed,
+              icon: 'image-edit',
+            },
+            {
+              value: ViewMode.Both,
+              icon: 'compare',
+            },
+          ]}
         />
-      )}
+      </View>
+      <View style={styles.imagePreviewWrapper}>
+        <ImagePreview
+          imageUri={imageUri}
+          processedImageUri={processedImageUri ?? ''}
+          viewMode={viewMode}
+          imageSize={imageSize}
+        />
+      </View>
+      <View style={styles.controlsContainer}>
+        {selectedAction === ProcessingActions.Posterize &&
+          viewMode !== ViewMode.Original && (
+            <PosterizeControls
+              toneValues={[toneValues]}
+              simplicity={[simplicity]}
+              onToneChange={handleToneValueSliderChange}
+              onToneFinish={handleToneValueSliderFinish}
+              onSimplicityChange={handleSimplicitySliderChange}
+              onSimplicityFinish={handleSimplicitySliderFinish}
+            />
+          )}
+        {selectedAction === ProcessingActions.Threshold &&
+          viewMode !== ViewMode.Original && (
+            <ThresholdControls
+              histogram={histogram}
+              threshold={thresholdValues}
+              onThresholdChange={handleThresholdSliderChange}
+              onThresholdFinish={handleThresholdSliderFinish}
+            />
+          )}
+      </View>
       <Appbar
         style={[
           styles.bottom,
@@ -220,11 +242,35 @@ const ImageProcessing = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'flex-start',
   },
+  topBar: {
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  imagePreviewWrapper: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  controlsContainer: {
+    width: '100%',
+    alignSelf: 'stretch',
+    padding: 12,
+    backgroundColor: '#fff',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    alignItems: 'center',
+  },
   bottom: {
-    backgroundColor: 'aquamarine',
     position: 'absolute',
     left: 0,
     right: 0,

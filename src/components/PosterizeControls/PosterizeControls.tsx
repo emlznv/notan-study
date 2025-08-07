@@ -13,7 +13,7 @@ const PosterizeControls = ({
   return (
     <View>
       <ValueControl
-        values={[toneValues]}
+        values={toneValues}
         onChange={onToneChange}
         onSlidingComplete={onToneFinish}
         min={2}
@@ -22,7 +22,7 @@ const PosterizeControls = ({
         label="Tone values"
       />
       <ValueControl
-        values={[simplicity]}
+        values={simplicity}
         onChange={onSimplicityChange}
         onSlidingComplete={onSimplicityFinish}
         min={0}
