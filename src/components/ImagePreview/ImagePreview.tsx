@@ -25,12 +25,14 @@ const ImagePreview = ({
     if (viewMode === ViewMode.Processed && processedImageUri) {
       const uri = `file://${processedImageUri}`;
       if (uri !== currentUri) {
-        setNextUri(uri);
+        setCurrentUri(uri);
+        setNextUri(null);
         fadeAnim.setValue(1);
       }
     } else if (viewMode === ViewMode.Original) {
       if (imageUri !== currentUri) {
-        setNextUri(imageUri);
+        setCurrentUri(imageUri);
+        setNextUri(null);
         fadeAnim.setValue(1);
       }
     }

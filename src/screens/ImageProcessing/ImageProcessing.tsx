@@ -192,9 +192,9 @@ const ImageProcessing = ({
           imageSize={imageSize}
         />
       </View>
-      <View style={styles.controlsContainer}>
-        {selectedAction === ProcessingActions.Posterize &&
-          viewMode !== ViewMode.Original && (
+      {viewMode !== ViewMode.Original && (
+        <View style={styles.controlsContainer}>
+          {selectedAction === ProcessingActions.Posterize && (
             <PosterizeControls
               toneValues={[toneValues]}
               simplicity={[simplicity]}
@@ -204,8 +204,7 @@ const ImageProcessing = ({
               onSimplicityFinish={handleSimplicitySliderFinish}
             />
           )}
-        {selectedAction === ProcessingActions.Threshold &&
-          viewMode !== ViewMode.Original && (
+          {selectedAction === ProcessingActions.Threshold && (
             <ThresholdControls
               histogram={histogram}
               threshold={thresholdValues}
@@ -213,7 +212,8 @@ const ImageProcessing = ({
               onThresholdFinish={handleThresholdSliderFinish}
             />
           )}
-      </View>
+        </View>
+      )}
       {viewMode !== ViewMode.Original && (
         <Appbar
           style={[
