@@ -5,9 +5,11 @@ import {
   StyleProp,
   StyleSheet,
   View,
+  Animated,
 } from 'react-native';
 import { ImagePreviewProps } from './ImagePreview.types';
 import { ViewMode } from '../../screens/ImageProcessing/ImageProcessing';
+import { useEffect, useState } from 'react';
 
 const ImagePreview = ({
   imageUri,
@@ -15,6 +17,40 @@ const ImagePreview = ({
   viewMode,
   imageSize,
 }: ImagePreviewProps) => {
+  const [fadeAnim] = useState(new Animated.Value(1));
+  const [currentUri, setCurrentUri] = useState<string>(imageUri);
+  const [nextUri, setNextUri] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (viewMode === ViewMode.Processed && processedImageUri) {
+      const uri = `file://${processedImageUri}`;
+      if (uri !== currentUri) {
+        setNextUri(uri);
+        fadeAnim.setValue(1);
+      }
+    } else if (viewMode === ViewMode.Original) {
+      if (imageUri !== currentUri) {
+        setNextUri(imageUri);
+        fadeAnim.setValue(1);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [processedImageUri, imageUri, viewMode]);
+
+  const handleImageLoad = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 50,
+      useNativeDriver: true,
+    }).start(() => {
+      if (nextUri) {
+        setCurrentUri(nextUri);
+        setNextUri(null);
+        fadeAnim.setValue(1);
+      }
+    });
+  };
+
   const renderImage = (isProcessed: boolean, style?: StyleProp<ImageStyle>) => {
     const uri = isProcessed ? `file://${processedImageUri}` : imageUri;
     return <Image source={{ uri }} style={[styles.image, style]} />;
@@ -41,10 +77,22 @@ const ImagePreview = ({
           },
         ]}
       >
-        {viewMode === ViewMode.Original && renderImage(false)}
-        {viewMode === ViewMode.Processed &&
-          processedImageUri &&
-          renderImage(true)}
+        {(viewMode === ViewMode.Original ||
+          viewMode === ViewMode.Processed) && (
+          <>
+            <Image
+              source={{ uri: currentUri }}
+              style={[styles.image, { position: 'absolute' }]}
+            />
+            {nextUri && (
+              <Animated.Image
+                source={{ uri: nextUri }}
+                style={[styles.image, { opacity: fadeAnim }]}
+                onLoad={handleImageLoad}
+              />
+            )}
+          </>
+        )}
         {viewMode === ViewMode.Both && (
           <View
             style={[

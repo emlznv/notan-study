@@ -12,6 +12,8 @@ const ThresholdControls = ({
   const histogramWidth = screenWidth * 0.9;
   const barCount = histogram.length;
   const barWidth = histogramWidth / barCount;
+  const maxBarHeight = 80;
+  const maxValue = Math.max(...histogram, 1); // avoid division by zero
 
   // Clamp values so each threshold is at least 1 apart
   const clampThresholds = (values: number[]) => {
@@ -34,9 +36,14 @@ const ThresholdControls = ({
 
   return (
     <>
-      <View style={[styles.histogramRow, { width: histogramWidth }]}>
+      <View
+        style={[
+          styles.histogramRow,
+          { width: histogramWidth, height: maxBarHeight },
+        ]}
+      >
         {histogram.map((value, index) => {
-          const barHeight = Math.min(value / 500, 100); // tweak divisor to scale height
+          const barHeight = (value / maxValue) * maxBarHeight;
           const isThreshold = threshold.includes(index);
           const barColor = isThreshold
             ? 'orange'
@@ -72,7 +79,6 @@ const styles = StyleSheet.create({
   histogramRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    height: 100,
     marginVertical: 10,
   },
 });

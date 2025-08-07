@@ -214,31 +214,37 @@ const ImageProcessing = ({
             />
           )}
       </View>
-      <Appbar
-        style={[
-          styles.bottom,
-          {
-            height: BOTTOM_APPBAR_HEIGHT + bottom,
-            backgroundColor: theme.colors.elevation.level2,
-          },
-        ]}
-        safeAreaInsets={{ bottom }}
-      >
-        <Appbar.Action
-          icon="image-filter-black-white"
-          iconColor={
-            selectedAction === ProcessingActions.Posterize ? 'orange' : 'white'
-          }
-          onPress={() => setSelectedAction(ProcessingActions.Posterize)}
-        />
-        <Appbar.Action
-          icon="sine-wave"
-          iconColor={
-            selectedAction === ProcessingActions.Threshold ? 'orange' : 'white'
-          }
-          onPress={() => setSelectedAction(ProcessingActions.Threshold)}
-        />
-      </Appbar>
+      {viewMode !== ViewMode.Original && (
+        <Appbar
+          style={[
+            styles.bottom,
+            {
+              height: BOTTOM_APPBAR_HEIGHT + bottom,
+              backgroundColor: theme.colors.elevation.level2,
+            },
+          ]}
+          safeAreaInsets={{ bottom }}
+        >
+          <Appbar.Action
+            icon="image-filter-black-white"
+            iconColor={
+              selectedAction === ProcessingActions.Posterize
+                ? 'orange'
+                : 'white'
+            }
+            onPress={() => setSelectedAction(ProcessingActions.Posterize)}
+          />
+          <Appbar.Action
+            icon="sine-wave"
+            iconColor={
+              selectedAction === ProcessingActions.Threshold
+                ? 'orange'
+                : 'white'
+            }
+            onPress={() => setSelectedAction(ProcessingActions.Threshold)}
+          />
+        </Appbar>
+      )}
     </View>
   );
 };
