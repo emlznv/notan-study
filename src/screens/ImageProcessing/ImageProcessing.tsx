@@ -138,11 +138,15 @@ const ImageProcessing = ({
     setThresholdValues(values);
 
     try {
-      // const processedUri = await ImageProcessor.applyThreshold(
-      //   imageUri,
-      //   newThreshold,
-      // );
-      // setProcessedImageUri(processedUri);
+      // If your native module expects an array, pass values directly
+      const processedUri = await ImageProcessor.applyThreshold(
+        imageUri,
+        values,
+      );
+      if (!processedUri) {
+        console.warn('Warning: Processed URI is null or undefined');
+      }
+      setProcessedImageUri(processedUri);
     } catch (error) {
       console.error('Threshold processing failed:', error);
     }
