@@ -7,6 +7,22 @@ import org.opencv.imgproc.Imgproc
 import java.io.File
 
 class ImageProcessorModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
+    // Helper function to resize image for preview
+    private fun resizeForPreview(mat: Mat, maxPreviewSize: Int = 384): Mat {
+        val width = mat.width()
+        val height = mat.height()
+        val scale = if (width > height) maxPreviewSize.toDouble() / width else maxPreviewSize.toDouble() / height
+        return if (scale < 1.0) {
+            val newWidth = Math.round(width * scale).toInt()
+            val newHeight = Math.round(height * scale).toInt()
+            val resized = Mat()
+            Imgproc.resize(mat, resized, Size(newWidth.toDouble(), newHeight.toDouble()))
+            mat.release()
+            resized
+        } else {
+            mat
+        }
+    }
 
     override fun getName() = "ImageProcessor"
 
@@ -28,21 +44,7 @@ class ImageProcessorModule(reactContext: ReactApplicationContext) : ReactContext
                 return
             }
 
-            // Resize image for faster preview (max 384px on longest side)
-            val maxPreviewSize = 384
-            val width = matColor.width()
-            val height = matColor.height()
-            val scale = if (width > height) maxPreviewSize.toDouble() / width else maxPreviewSize.toDouble() / height
-            val matToProcess = if (scale < 1.0) {
-                val newWidth = Math.round(width * scale).toInt()
-                val newHeight = Math.round(height * scale).toInt()
-                val resized = Mat()
-                org.opencv.imgproc.Imgproc.resize(matColor, resized, Size(newWidth.toDouble(), newHeight.toDouble()))
-                matColor.release()
-                resized
-            } else {
-                matColor
-            }
+            val matToProcess = resizeForPreview(matColor)
 
             // Apply simplicity-based smoothing before processing
             val smoothedMat = if (simplicity > 0) {
@@ -66,6 +68,91 @@ class ImageProcessorModule(reactContext: ReactApplicationContext) : ReactContext
             promise.reject("PROCESS_ERROR", e.message)
         }
     }
+
+    @ReactMethod
+    fun getHistogram(imagePath: String, promise: Promise) {
+        try {
+            val cleanPath = if (imagePath.startsWith("file://")) imagePath.removePrefix("file://") else imagePath
+
+            val matColor = Imgcodecs.imread(cleanPath)
+            if (matColor.empty()) {
+                promise.reject("IMAGE_LOAD_FAILED", "Failed to load image at path: $imagePath")
+                return
+            }
+
+            // Convert to grayscale
+            val matGray = Mat()
+            Imgproc.cvtColor(matColor, matGray, Imgproc.COLOR_BGR2GRAY)
+
+            val histSize = MatOfInt(256)  // 256 bins
+            val channels = MatOfInt(0)    // grayscale channel
+            val histRange = MatOfFloat(0f, 256f)
+            val hist = Mat()
+
+            Imgproc.calcHist(listOf(matGray), channels, Mat(), hist, histSize, histRange)
+
+            // Convert histogram Mat to a Kotlin List<Float> to send back to JS
+            val histList = mutableListOf<Float>()
+            for (i in 0 until hist.rows()) {
+                histList.add(hist.get(i, 0)[0].toFloat())
+            }
+
+            // Send histogram data back
+            promise.resolve(Arguments.makeNativeArray(histList))
+        } catch (e: Exception) {
+            e.printStackTrace()
+            promise.reject("HISTOGRAM_ERROR", e.message)
+        }
+    }
+
+    @ReactMethod
+    fun applyThreshold(imagePath: String, thresholdValues: ReadableArray, promise: Promise) {
+        try {
+            val cleanPath = if (imagePath.startsWith("file://")) imagePath.removePrefix("file://") else imagePath
+
+            val matColor = Imgcodecs.imread(cleanPath)
+            if (matColor.empty()) {
+                promise.reject("IMAGE_LOAD_FAILED", "Failed to load image at path: $imagePath")
+                return
+            }
+
+            val matToProcess = resizeForPreview(matColor)
+
+            val matGray = Mat()
+            Imgproc.cvtColor(matToProcess, matGray, Imgproc.COLOR_BGR2GRAY)
+
+            val thresholds = (0 until thresholdValues.size())
+                .map { thresholdValues.getInt(it) }
+                .sorted()
+
+            // Multi-level thresholding: assign each pixel a value based on which range it falls into
+            val matThresh = Mat(matGray.size(), CvType.CV_8U)
+            for (row in 0 until matGray.rows()) {
+                for (col in 0 until matGray.cols()) {
+                    val pixel = matGray.get(row, col)[0].toInt()
+                    var value = 0
+                    for (i in thresholds.indices) {
+                        if (pixel > thresholds[i]) {
+                            value = ((255.0 / (thresholds.size + 1)) * (i + 1)).toInt()
+                        } else {
+                            break
+                        }
+                    }
+                    matThresh.put(row, col, value.toDouble())
+                }
+            }
+
+            val outputFile = File(reactApplicationContext.cacheDir, "threshold_${java.util.UUID.randomUUID()}.jpg")
+            Imgcodecs.imwrite(outputFile.absolutePath, matThresh)
+
+            promise.resolve(outputFile.absolutePath)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            promise.reject("PROCESS_ERROR", e.message)
+        }
+    }
+
+
 
     // Helper function to process and save the image, returns the output file path
     private fun processAndSave(matColor: Mat, tones: Int): String? {
