@@ -7,17 +7,27 @@ import {
   View,
 } from 'react-native';
 import { ImagePreviewProps } from './ImagePreview.types';
-import { ViewMode } from '../../screens/ImageProcessing/ImageProcessing';
+import {
+  GridType,
+  ViewMode,
+} from '../../screens/ImageProcessing/ImageProcessing';
+import GridOverlay from '../GridOverlay/GridOverlay';
 
 const ImagePreview = ({
   imageUri,
   processedImageUri,
   viewMode,
   imageSize,
+  gridType,
 }: ImagePreviewProps) => {
   const renderImage = (isProcessed: boolean, style?: StyleProp<ImageStyle>) => {
     const uri = isProcessed ? `file://${processedImageUri}` : imageUri;
-    return <Image source={{ uri }} style={[styles.image, style]} />;
+    return (
+      <>
+        <Image source={{ uri }} style={[styles.image, style]} />
+        {gridType !== GridType.None && <GridOverlay type={gridType} />}
+      </>
+    );
   };
 
   const screenWidth = Dimensions.get('window').width;
