@@ -10,6 +10,7 @@ import ImagePreview from '../../components/ImagePreview/ImagePreview';
 import PosterizeControls from '../../components/PosterizeControls/PosterizeControls';
 import ThresholdControls from '../../components/ThresholdControls/ThresholdControls';
 import GridControls from '../../components/GridControls/GridControls';
+import { GridType, ViewMode } from '../../utils/constants/constants';
 const { ImageProcessor } = NativeModules;
 
 const BOTTOM_APPBAR_HEIGHT = 70;
@@ -18,20 +19,6 @@ enum MenuItems {
   Posterize = 0,
   Threshold = 1,
   Grid = 2,
-}
-
-export enum GridType {
-  None = 'none',
-  Thirds = 'thirds',
-  Golden = 'golden',
-  Square = 'square',
-  Diagonals = 'diagonals',
-}
-
-export enum ViewMode {
-  Original = 'original',
-  Processed = 'processed',
-  Both = 'both',
 }
 
 const ImageProcessing = ({
@@ -43,6 +30,7 @@ const ImageProcessing = ({
   const [processedImageUri, setProcessedImageUri] = useState(null);
   const [toneValues, setToneValues] = useState(3);
   const [simplicity, setSimplicity] = useState(0);
+  const [focusBlur, setFocusBlur] = useState(0);
   const [histogram, setHistogram] = useState<number[]>([]);
   const [thresholdValues, setThresholdValues] = useState<number[]>([85, 170]);
   const [selectedAction, setSelectedAction] = useState<number | null>(
@@ -53,7 +41,7 @@ const ImageProcessing = ({
 
   useEffect(() => {
     calculateImageSize();
-    processImage(imageUri, toneValues, simplicity);
+    processImage(imageUri, toneValues, simplicity, focusBlur);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -105,13 +93,15 @@ const ImageProcessing = ({
   const processImage = async (
     uri: string,
     tones: number,
-    simplicity: number,
+    simplicityValue: number,
+    focusBlurValue: number,
   ) => {
     try {
       const processedUri = await ImageProcessor.processImage(
         uri,
         tones,
-        simplicity,
+        simplicityValue,
+        focusBlurValue,
       );
       if (!processedUri) {
         console.warn('Warning: Processed URI is null or undefined');
@@ -127,7 +117,7 @@ const ImageProcessing = ({
   };
 
   const handleToneValueSliderFinish = (values: number[]) => {
-    processImage(imageUri, values[0], simplicity);
+    processImage(imageUri, values[0], simplicity, focusBlur);
   };
 
   const handleSimplicitySliderChange = (values: number[]) => {
@@ -135,12 +125,19 @@ const ImageProcessing = ({
   };
 
   const handleSimplicitySliderFinish = (values: number[]) => {
-    processImage(imageUri, toneValues, values[0]);
+    processImage(imageUri, toneValues, values[0], focusBlur);
   };
 
   const handleThresholdSliderChange = (values: number[]) => {
     setThresholdValues(values);
-    //  processImage(imageUri, toneValues, values[0], simplicity);
+  };
+
+  const handleFocusBlurSliderChange = (values: number[]) => {
+    setFocusBlur(values[0]);
+  };
+
+  const handleFocusBlurSliderFinish = (values: number[]) => {
+    processImage(imageUri, toneValues, simplicity, values[0]);
   };
 
   const handleThresholdSliderFinish = async (values: number[]) => {
@@ -210,10 +207,13 @@ const ImageProcessing = ({
             <PosterizeControls
               toneValues={[toneValues]}
               simplicity={[simplicity]}
+              focusBlur={[focusBlur]}
               onToneChange={handleToneValueSliderChange}
               onToneFinish={handleToneValueSliderFinish}
               onSimplicityChange={handleSimplicitySliderChange}
               onSimplicityFinish={handleSimplicitySliderFinish}
+              onFocusBlurChange={handleFocusBlurSliderChange}
+              onFocusBlurFinish={handleFocusBlurSliderFinish}
             />
           )}
           {selectedAction === MenuItems.Threshold && (

@@ -5,10 +5,13 @@ import { PosterizeControlsProps } from './PosterizeControls.types';
 const PosterizeControls = ({
   toneValues,
   simplicity,
+  focusBlur,
   onToneChange,
   onToneFinish,
   onSimplicityChange,
   onSimplicityFinish,
+  onFocusBlurChange,
+  onFocusBlurFinish,
 }: PosterizeControlsProps) => {
   return (
     <View>
@@ -29,6 +32,15 @@ const PosterizeControls = ({
         max={10}
         step={1}
         label="Simplicity"
+      />
+      <ValueControl
+        values={focusBlur}
+        onChange={onFocusBlurChange}
+        onSlidingComplete={onFocusBlurFinish}
+        min={0}
+        max={20}
+        step={1}
+        label="Focus/Blur"
       />
     </View>
   );
