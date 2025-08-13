@@ -7,11 +7,8 @@ import {
   View,
 } from 'react-native';
 import { ImagePreviewProps } from './ImagePreview.types';
-import {
-  GridType,
-  ViewMode,
-} from '../../screens/ImageProcessing/ImageProcessing';
 import GridOverlay from '../GridOverlay/GridOverlay';
+import { GridType, ViewMode } from '../../utils/constants/constants';
 
 const ImagePreview = ({
   imageUri,
@@ -22,12 +19,7 @@ const ImagePreview = ({
 }: ImagePreviewProps) => {
   const renderImage = (isProcessed: boolean, style?: StyleProp<ImageStyle>) => {
     const uri = isProcessed ? `file://${processedImageUri}` : imageUri;
-    return (
-      <>
-        <Image source={{ uri }} style={[styles.image, style]} />
-        {gridType !== GridType.None && <GridOverlay type={gridType} />}
-      </>
-    );
+    return <Image source={{ uri }} style={[styles.image, style]} />;
   };
 
   const screenWidth = Dimensions.get('window').width;
@@ -52,9 +44,12 @@ const ImagePreview = ({
         ]}
       >
         {viewMode === ViewMode.Original && renderImage(false)}
-        {viewMode === ViewMode.Processed &&
-          processedImageUri &&
-          renderImage(true)}
+        {viewMode === ViewMode.Processed && processedImageUri && (
+          <>
+            {renderImage(true)}
+            {gridType !== GridType.None && <GridOverlay type={gridType} />}
+          </>
+        )}
         {viewMode === ViewMode.Both && (
           <View
             style={[
@@ -63,7 +58,12 @@ const ImagePreview = ({
             ]}
           >
             {renderImage(false, styles.imageBoth)}
-            {processedImageUri && renderImage(true, styles.imageBoth)}
+            {processedImageUri && (
+              <View style={styles.imageBoth}>
+                {renderImage(true, styles.imageBoth)}
+                {gridType !== GridType.None && <GridOverlay type={gridType} />}
+              </View>
+            )}
           </View>
         )}
       </View>

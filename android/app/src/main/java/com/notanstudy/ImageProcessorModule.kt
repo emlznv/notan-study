@@ -27,7 +27,7 @@ class ImageProcessorModule(reactContext: ReactApplicationContext) : ReactContext
     override fun getName() = "ImageProcessor"
 
    @ReactMethod
-    fun processImage(imagePath: String, tones: Int, simplicity: Int, promise: Promise) {
+    fun processImage(imagePath: String, tones: Int, simplicity: Int, focusBlur: Int, promise: Promise) {
         try {
             if (tones <= 0) {
                 promise.reject("INVALID_TONES", "Tones must be greater than 0")
@@ -57,7 +57,19 @@ class ImageProcessorModule(reactContext: ReactApplicationContext) : ReactContext
                 matToProcess
             }
 
-            val resultPath = processAndSave(smoothedMat, tones)
+            // --- Focus/Blur (Edge Softness) ---
+            val focusBlurredMat = if (focusBlur > 0) {
+                val blurred = Mat()
+                // Use Gaussian blur for edge softness, kernel size must be odd and > 1
+                val kernelSize = if (focusBlur % 2 == 0) focusBlur + 1 else focusBlur
+                Imgproc.GaussianBlur(smoothedMat, blurred, Size(kernelSize.toDouble(), kernelSize.toDouble()), 0.0)
+                smoothedMat.release()
+                blurred
+            } else {
+                smoothedMat
+            }
+
+            val resultPath = processAndSave(focusBlurredMat, tones)
             if (resultPath == null) {
                 promise.reject("PROCESS_ERROR", "Image processing failed")
             } else {

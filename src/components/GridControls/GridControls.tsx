@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { StyleSheet } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { GridControlsProps } from './GridControls.types';
-import { GridType } from '../../screens/ImageProcessing/ImageProcessing';
+import { GridType } from '../../utils/constants/constants';
 
 const GRID_OPTIONS = [
   { value: GridType.None, label: 'None' },

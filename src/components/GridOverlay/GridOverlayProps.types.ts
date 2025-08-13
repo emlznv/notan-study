@@ -1,4 +1,4 @@
-import { GridType } from "../../screens/ImageProcessing/ImageProcessing";
+import { GridType } from "../../utils/constants/constants";
 
 export interface GridOverlayProps {
   type: GridType;

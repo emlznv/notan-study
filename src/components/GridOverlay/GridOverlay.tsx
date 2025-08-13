@@ -2,13 +2,13 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import Svg, { Line } from 'react-native-svg';
 import { GridOverlayProps } from './GridOverlayProps.types';
-import { GridType } from '../../screens/ImageProcessing/ImageProcessing';
+import { GridType } from '../../utils/constants/constants';
 
-const GridOverlay: React.FC<GridOverlayProps> = ({
+const GridOverlay = ({
   type = GridType.None,
   color = 'orange',
   thickness = 1,
-}) => {
+}: GridOverlayProps) => {
   if (type === GridType.None) return null;
 
   return (

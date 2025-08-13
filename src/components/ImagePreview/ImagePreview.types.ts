@@ -1,5 +1,5 @@
-import { ViewMode } from "../../screens/ImageProcessing/ImageProcessing";
-import { GridType } from "../../screens/ImageProcessing/ImageProcessing";
+import { GridType, ViewMode } from "../../utils/constants/constants";
+
 export interface ImagePreviewProps {
     imageUri: string;
     processedImageUri: string;
