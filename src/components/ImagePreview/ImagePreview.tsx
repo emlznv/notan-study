@@ -1,27 +1,17 @@
-import {
-  Dimensions,
-  Image,
-  ImageStyle,
-  StyleProp,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { Dimensions, Image, StyleSheet, View } from 'react-native';
 import { ImagePreviewProps } from './ImagePreview.types';
 import GridOverlay from '../GridOverlay/GridOverlay';
 import { GridType, ViewMode } from '../../utils/constants/constants';
+import { IconButton } from 'react-native-paper';
+import { useState } from 'react';
 
 const ImagePreview = ({
   imageUri,
   processedImageUri,
-  viewMode,
   imageSize,
   gridType,
 }: ImagePreviewProps) => {
-  const renderImage = (isProcessed: boolean, style?: StyleProp<ImageStyle>) => {
-    const uri = isProcessed ? `file://${processedImageUri}` : imageUri;
-    return <Image source={{ uri }} style={[styles.image, style]} />;
-  };
-
+  const [viewMode, setViewMode] = useState(ViewMode.Processed);
   const screenWidth = Dimensions.get('window').width;
   const containerWidth = screenWidth * 0.9;
   const isPortrait = imageSize.height > imageSize.width;
@@ -31,6 +21,15 @@ const ImagePreview = ({
     : imageSize.height / imageSize.width;
 
   const maxHeight = Math.min(containerWidth / aspectRatio, 550);
+
+  const handleChangeViewMode = () => {
+    if (viewMode === ViewMode.Original) {
+      setViewMode(ViewMode.Processed);
+    } else {
+      setViewMode(ViewMode.Original);
+    }
+  };
+
   return (
     <View style={styles.previewWrapper}>
       <View
@@ -43,29 +42,25 @@ const ImagePreview = ({
           },
         ]}
       >
-        {viewMode === ViewMode.Original && renderImage(false)}
-        {viewMode === ViewMode.Processed && processedImageUri && (
-          <>
-            {renderImage(true)}
-            {gridType !== GridType.None && <GridOverlay type={gridType} />}
-          </>
-        )}
-        {viewMode === ViewMode.Both && (
-          <View
-            style={[
-              styles.imageBothContainer,
-              isPortrait ? styles.containerRow : styles.containerColumn,
-            ]}
-          >
-            {renderImage(false, styles.imageBoth)}
-            {processedImageUri && (
-              <View style={styles.imageBoth}>
-                {renderImage(true, styles.imageBoth)}
-                {gridType !== GridType.None && <GridOverlay type={gridType} />}
-              </View>
-            )}
-          </View>
-        )}
+        <>
+          <IconButton
+            iconColor="black"
+            style={{ position: 'absolute', top: 0, right: 0, zIndex: 1000 }}
+            icon="eye"
+            size={20}
+            onPress={handleChangeViewMode}
+          />
+          <Image
+            source={{
+              uri:
+                viewMode === ViewMode.Processed
+                  ? `file://${processedImageUri}`
+                  : imageUri,
+            }}
+            style={[styles.image]}
+          />
+          {gridType !== GridType.None && <GridOverlay type={gridType} />}
+        </>
       </View>
     </View>
   );
@@ -87,22 +82,6 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
-    resizeMode: 'contain',
-  },
-  imageBothContainer: {
-    flex: 1,
-    width: '100%',
-    gap: 10,
-  },
-  containerRow: {
-    flexDirection: 'row',
-  },
-  containerColumn: {
-    flexDirection: 'column',
-  },
-  imageBoth: {
-    flex: 1,
-    width: '100%',
     resizeMode: 'contain',
   },
 });
