@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
-import { Button } from 'react-native-paper';
+import { Button, useTheme } from 'react-native-paper';
 import { NativeModules } from 'react-native';
 import { RootStackParamList } from '../../../App';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -21,6 +21,7 @@ const { ImageProcessor } = NativeModules;
 const ImageProcessing = ({
   route,
 }: NativeStackScreenProps<RootStackParamList, 'ImageProcessing'>) => {
+  const theme = useTheme();
   const { imageUri } = route.params;
   const { bottom } = useSafeAreaInsets();
 
@@ -174,7 +175,8 @@ const ImageProcessing = ({
   };
 
   if (!imageUri) return null;
-  if (!imageSize) return <ActivityIndicator color="orange" size="small" />;
+  if (!imageSize)
+    return <ActivityIndicator color={theme.colors.primary} size="small" />;
 
   return (
     <View
@@ -187,7 +189,7 @@ const ImageProcessing = ({
         icon={viewMode === ViewMode.Processed ? 'eye' : 'eye-off'}
         textColor="black"
         onPress={handleChangeViewMode}
-        style={{ marginRight: 'auto' }}
+        style={styles.viewModeButton}
       >
         View
       </Button>
@@ -239,19 +241,31 @@ const ImageProcessing = ({
         <Appbar.Action
           icon="image-filter-black-white"
           style={styles.appBarButton}
-          iconColor={selectedAction === MenuItems.Posterize ? 'orange' : 'gray'}
+          iconColor={
+            selectedAction === MenuItems.Posterize
+              ? theme.colors.primary
+              : theme.colors.tertiary
+          }
           onPress={() => setSelectedAction(MenuItems.Posterize)}
         />
         <Appbar.Action
           icon="sine-wave"
           style={styles.appBarButton}
-          iconColor={selectedAction === MenuItems.Threshold ? 'orange' : 'gray'}
+          iconColor={
+            selectedAction === MenuItems.Threshold
+              ? theme.colors.primary
+              : theme.colors.tertiary
+          }
           onPress={() => setSelectedAction(MenuItems.Threshold)}
         />
         <Appbar.Action
           icon="grid"
           style={styles.appBarButton}
-          iconColor={selectedAction === MenuItems.Grid ? 'orange' : 'gray'}
+          iconColor={
+            selectedAction === MenuItems.Grid
+              ? theme.colors.primary
+              : theme.colors.tertiary
+          }
           onPress={() => setSelectedAction(MenuItems.Grid)}
         />
       </Appbar>
@@ -303,6 +317,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
+  },
+  viewModeButton: {
+    marginRight: 'auto',
   },
 });
 

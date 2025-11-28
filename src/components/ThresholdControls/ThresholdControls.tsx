@@ -1,6 +1,7 @@
 import { Dimensions, StyleSheet, View } from 'react-native';
 import { ThresholdControlProps } from './ThresholdControls.types';
 import ValueControl from '../ValueControl/ValueControl';
+import { useTheme } from 'react-native-paper';
 
 const ThresholdControls = ({
   histogram,
@@ -8,6 +9,7 @@ const ThresholdControls = ({
   onThresholdChange,
   onThresholdFinish,
 }: ThresholdControlProps) => {
+  const theme = useTheme();
   const screenWidth = Dimensions.get('window').width;
   const histogramWidth = screenWidth * 0.9;
   const barCount = histogram.length;
@@ -46,7 +48,7 @@ const ThresholdControls = ({
           const barHeight = (value / maxValue) * maxBarHeight;
           const isThreshold = threshold.includes(index);
           const barColor = isThreshold
-            ? 'orange'
+            ? theme.colors.primary
             : `rgb(${index},${index},${index})`;
           return (
             <View

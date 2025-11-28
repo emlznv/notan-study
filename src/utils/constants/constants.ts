@@ -12,6 +12,7 @@ export enum ViewMode {
 }
 
 export const BOTTOM_APPBAR_HEIGHT = 70;
+export const SPLASH_TIMEOUT = 1000;
 
 export enum MenuItems {
   Posterize = 0,

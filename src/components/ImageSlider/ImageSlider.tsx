@@ -5,10 +5,12 @@ import {
   GestureDetector,
   GestureHandlerRootView,
 } from 'react-native-gesture-handler';
+import { useTheme } from 'react-native-paper';
 
 const SWIPE_THRESHOLD = 10;
 
 const ImageSlider = ({ images, step, handleChangeStep }: ImageSliderProps) => {
+  const theme = useTheme();
   const total = images.length;
 
   const handleNextStep = () => handleChangeStep((step + 1) % total);
@@ -36,7 +38,12 @@ const ImageSlider = ({ images, step, handleChangeStep }: ImageSliderProps) => {
                 key={index}
                 style={[
                   styles.dot,
-                  step === index ? styles.activeDot : styles.inactiveDot,
+                  {
+                    backgroundColor:
+                      step === index
+                        ? theme.colors.primary
+                        : theme.colors.tertiary,
+                  },
                 ]}
               />
             ))}
@@ -76,12 +83,6 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 5,
     marginHorizontal: 6,
-  },
-  activeDot: {
-    backgroundColor: '#6200ee',
-  },
-  inactiveDot: {
-    backgroundColor: '#ccc',
   },
 });
 

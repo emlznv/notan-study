@@ -5,8 +5,10 @@ import {
   Text,
   Alert,
   PermissionsAndroid,
+  Image,
+  TouchableOpacity,
 } from 'react-native';
-import { Button, IconButton } from 'react-native-paper';
+import { Button, useTheme } from 'react-native-paper';
 import ImagePicker, { ImageOrVideo } from 'react-native-image-crop-picker';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../../App';
@@ -14,6 +16,8 @@ import { RootStackParamList } from '../../../App';
 const Home = ({
   navigation,
 }: NativeStackScreenProps<RootStackParamList, 'Home'>) => {
+  const theme = useTheme();
+
   const requestCameraPermission = async () => {
     try {
       const granted = await PermissionsAndroid.request(
@@ -83,23 +87,28 @@ const Home = ({
 
   return (
     <View style={styles.container}>
-      <Text>Lorem Ipsum Title</Text>
-      <View style={styles.uploadContainer}>
-        <IconButton
-          iconColor="black"
-          icon="image-plus"
-          style={{ margin: 20 }}
-          size={100}
-          onPress={handlePickFromGallery}
+      <Text style={styles.title}>Get started</Text>
+      <TouchableOpacity
+        onPress={handlePickFromGallery}
+        style={{
+          ...styles.uploadContainer,
+          borderColor: theme.colors.tertiary,
+        }}
+      >
+        <Image
+          source={require('../../assets/image-upload.png')}
+          style={styles.image}
         />
-        <Text>Upload image</Text>
-      </View>
-      <Text>or</Text>
+        <Text>Tap to upload</Text>
+      </TouchableOpacity>
+      <Text>OR</Text>
       <Button
         icon="camera"
-        textColor="black"
-        mode="outlined"
+        textColor={theme.colors.background}
+        buttonColor={theme.colors.primary}
+        mode="contained"
         onPress={handleTakePhoto}
+        style={styles.takePhotoButton}
       >
         Take photo
       </Button>
@@ -113,17 +122,29 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  title: {
+    fontSize: 24,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
   uploadContainer: {
-    borderWidth: 2,
-    borderRadius: 10,
-    borderColor: 'gray',
-    borderStyle: 'dotted',
-    padding: 30,
     alignItems: 'center',
+    borderStyle: 'dotted',
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingBottom: 10,
+    marginVertical: 40,
   },
   image: {
-    width: 200,
-    height: 200,
+    width: 270,
+    height: 270,
+  },
+  takePhotoButton: {
+    marginTop: 20,
+  },
+  addIcon: {
+    marginRight: 5,
+    marginTop: 5,
   },
 });
 
