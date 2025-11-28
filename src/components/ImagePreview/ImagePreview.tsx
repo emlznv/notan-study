@@ -13,13 +13,14 @@ const ImagePreview = ({
 }: ImagePreviewProps) => {
   const screenWidth = Dimensions.get('window').width;
   const screenHeight = Dimensions.get('window').height;
+  const { width: imgWidth, height: imgHeight } = imageSize;
 
   const maxWidth = screenWidth * 0.9;
-  const maxHeight = screenHeight * 0.5;
+  const isPortrait = imageSize.height > imageSize.width;
+
+  const maxHeight = isPortrait ? screenHeight * 0.57 : screenHeight * 0.5;
 
   const [renderedSize, setRenderedSize] = useState({ width: 0, height: 0 });
-
-  const { width: imgWidth, height: imgHeight } = imageSize;
 
   let width = maxWidth;
   let height = (imgHeight / imgWidth) * width;
