@@ -1,7 +1,8 @@
+import React, { useState } from 'react';
 import { Dimensions, Image, StyleSheet, View } from 'react-native';
-import { ImagePreviewProps } from './ImagePreview.types';
 import GridOverlay from '../GridOverlay/GridOverlay';
 import { GridType, ViewMode } from '../../utils/constants/constants';
+import { ImagePreviewProps } from './ImagePreview.types';
 
 const ImagePreview = ({
   imageUri,
@@ -13,53 +14,58 @@ const ImagePreview = ({
   const screenWidth = Dimensions.get('window').width;
   const screenHeight = Dimensions.get('window').height;
 
-  // add option to enlarge image fully
-  const containerWidth = screenWidth * 0.9;
-  const isPortrait = imageSize.height > imageSize.width;
-  const maxHeight = isPortrait ? screenHeight * 0.55 : screenHeight * 0.9;
+  const maxWidth = screenWidth * 0.9;
+  const maxHeight = screenHeight * 0.5;
 
-  const aspectRatio = isPortrait
-    ? imageSize.width / imageSize.height
-    : imageSize.height / imageSize.width;
+  const [renderedSize, setRenderedSize] = useState({ width: 0, height: 0 });
+
+  const { width: imgWidth, height: imgHeight } = imageSize;
+
+  let width = maxWidth;
+  let height = (imgHeight / imgWidth) * width;
+
+  if (height > maxHeight) {
+    height = maxHeight;
+    width = (imgWidth / imgHeight) * height;
+  }
 
   return (
-    <View style={styles.previewWrapper}>
-      <View
-        style={[
-          styles.imageContainer,
-          {
-            width: containerWidth,
-            aspectRatio,
-            maxHeight,
-          },
-        ]}
-      >
-        <Image
-          source={{
-            uri:
-              viewMode === ViewMode.Processed
-                ? `file://${processedImageUri}`
-                : imageUri,
-          }}
-          style={styles.image}
+    <View style={[styles.imageContainer, { width, height }]}>
+      <Image
+        source={{
+          uri:
+            viewMode === ViewMode.Processed
+              ? `file://${processedImageUri}`
+              : imageUri,
+        }}
+        style={styles.image}
+        onLayout={e => {
+          const { width: rw, height: rh } = e.nativeEvent.layout;
+          setRenderedSize({ width: rw, height: rh });
+        }}
+      />
+      {gridType !== GridType.None && (
+        <GridOverlay
+          type={gridType}
+          width={renderedSize.width}
+          height={renderedSize.height}
+          thickness={1}
+          color="orange"
         />
-        {gridType !== GridType.None && <GridOverlay type={gridType} />}
-      </View>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   previewWrapper: {
-    width: '100%',
     alignItems: 'center',
+    width: '100%',
   },
   imageContainer: {
-    alignSelf: 'center',
     overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
-    flexShrink: 1,
   },
   image: {
     width: '100%',
