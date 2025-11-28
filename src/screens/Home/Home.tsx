@@ -86,33 +86,35 @@ const Home = ({
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Get started</Text>
-      <TouchableOpacity
-        onPress={handlePickFromGallery}
-        style={{
-          ...styles.uploadContainer,
-          borderColor: theme.colors.tertiary,
-        }}
-      >
-        <Image
-          source={require('../../assets/image-upload.png')}
-          style={styles.image}
-        />
-        <Text>Tap to upload</Text>
-      </TouchableOpacity>
-      <Text>OR</Text>
-      <Button
-        icon="camera"
-        textColor={theme.colors.background}
-        buttonColor={theme.colors.primary}
-        mode="contained"
-        onPress={handleTakePhoto}
-        style={styles.takePhotoButton}
-      >
-        Take photo
-      </Button>
-    </View>
+    <>
+      <Text style={styles.title}>Select an image you want to study</Text>
+      <View style={styles.container}>
+        <TouchableOpacity
+          onPress={handlePickFromGallery}
+          style={{
+            ...styles.uploadContainer,
+            borderColor: theme.colors.tertiary,
+          }}
+        >
+          <Image
+            source={require('../../assets/image-upload.png')}
+            style={styles.image}
+          />
+          <Text>Tap to upload</Text>
+        </TouchableOpacity>
+        <Text>OR</Text>
+        <Button
+          icon="camera"
+          textColor={theme.colors.background}
+          buttonColor={theme.colors.primary}
+          mode="contained"
+          onPress={handleTakePhoto}
+          style={styles.takePhotoButton}
+        >
+          Take photo
+        </Button>
+      </View>
+    </>
   );
 };
 
@@ -126,6 +128,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
     textAlign: 'center',
+    marginTop: 50,
   },
   uploadContainer: {
     alignItems: 'center',
@@ -133,14 +136,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 20,
     paddingBottom: 10,
-    marginVertical: 40,
+    marginBottom: 40,
   },
   image: {
     width: 270,
     height: 270,
   },
   takePhotoButton: {
-    marginTop: 20,
+    marginTop: 30,
   },
   addIcon: {
     marginRight: 5,

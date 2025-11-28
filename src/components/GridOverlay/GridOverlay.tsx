@@ -13,7 +13,7 @@ interface DynamicGridOverlayProps extends GridOverlayProps {
 const GridOverlay = ({
   type = GridType.None,
   color,
-  thickness = 1,
+  thickness = 2,
   width = 0,
   height = 0,
 }: DynamicGridOverlayProps) => {

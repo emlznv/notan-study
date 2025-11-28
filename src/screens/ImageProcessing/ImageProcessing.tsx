@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
   controlsContainer: {
     width: '100%',
     alignSelf: 'stretch',
-    paddingHorizontal: 10,
+    paddingHorizontal: 15,
     alignItems: 'center',
     height: 170,
     justifyContent: 'flex-start',
