@@ -272,7 +272,6 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: 20,
   },
   controlsContainer: {
     width: '100%',

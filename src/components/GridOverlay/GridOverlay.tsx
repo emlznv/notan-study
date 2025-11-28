@@ -4,155 +4,193 @@ import Svg, { Line } from 'react-native-svg';
 import { GridOverlayProps } from './GridOverlayProps.types';
 import { GridType } from '../../utils/constants/constants';
 
+interface DynamicGridOverlayProps extends GridOverlayProps {
+  width: number;
+  height: number;
+}
+
 const GridOverlay = ({
   type = GridType.None,
   color = 'orange',
   thickness = 1,
-}: GridOverlayProps) => {
-  if (type === GridType.None) return null;
+  width = 0,
+  height = 0,
+}: DynamicGridOverlayProps) => {
+  if (!width || !height || type === GridType.None) return null;
 
-  return (
-    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-      {type === GridType.Thirds && (
+  // Generate dynamic styles based on width/height
+  const styles = createGridStyles({ width, height, thickness, color });
+
+  switch (type) {
+    case GridType.Thirds:
+      return (
         <>
-          <View
-            style={[
-              styles.line,
-              styles.thirdsV1,
-              { backgroundColor: color, width: thickness },
-            ]}
-          />
-          <View
-            style={[
-              styles.line,
-              styles.thirdsV2,
-              { backgroundColor: color, width: thickness },
-            ]}
-          />
-          <View
-            style={[
-              styles.line,
-              styles.thirdsH1,
-              { backgroundColor: color, height: thickness },
-            ]}
-          />
-          <View
-            style={[
-              styles.line,
-              styles.thirdsH2,
-              { backgroundColor: color, height: thickness },
-            ]}
-          />
+          <View style={styles.thirdsV1} />
+          <View style={styles.thirdsV2} />
+          <View style={styles.thirdsH1} />
+          <View style={styles.thirdsH2} />
         </>
-      )}
-      {type === GridType.Square && (
+      );
+
+    case GridType.Square:
+      return (
         <>
-          <View
-            style={[
-              styles.line,
-              styles.squareV1,
-              { backgroundColor: color, width: thickness },
-            ]}
-          />
-          <View
-            style={[
-              styles.line,
-              styles.squareV2,
-              { backgroundColor: color, width: thickness },
-            ]}
-          />
-          <View
-            style={[
-              styles.line,
-              styles.squareV3,
-              { backgroundColor: color, width: thickness },
-            ]}
-          />
-          <View
-            style={[
-              styles.line,
-              styles.squareH1,
-              { backgroundColor: color, height: thickness },
-            ]}
-          />
-          <View
-            style={[
-              styles.line,
-              styles.squareH2,
-              { backgroundColor: color, height: thickness },
-            ]}
-          />
-          <View
-            style={[
-              styles.line,
-              styles.squareH3,
-              { backgroundColor: color, height: thickness },
-            ]}
-          />
+          <View style={styles.squareV1} />
+          <View style={styles.squareV2} />
+          <View style={styles.squareV3} />
+          <View style={styles.squareH1} />
+          <View style={styles.squareH2} />
+          <View style={styles.squareH3} />
         </>
-      )}
-      {type === GridType.Diagonals && (
-        <Svg width="100%" height="100%" style={StyleSheet.absoluteFill}>
+      );
+
+    case GridType.Diagonals:
+      return (
+        <Svg width={width} height={height} style={styles.svg}>
           <Line
-            x1="0"
-            y1="0"
-            x2="100%"
-            y2="100%"
+            x1={0}
+            y1={0}
+            x2={width}
+            y2={height}
             stroke={color}
             strokeWidth={thickness}
           />
           <Line
-            x1="100%"
-            y1="0"
-            x2="0"
-            y2="100%"
+            x1={width}
+            y1={0}
+            x2={0}
+            y2={height}
             stroke={color}
             strokeWidth={thickness}
           />
         </Svg>
-      )}
-      {/* Golden Ratio */}
-      {type === GridType.Golden && (
+      );
+
+    case GridType.Golden:
+      return (
         <>
-          <View
-            style={[
-              styles.line,
-              styles.goldenV,
-              { backgroundColor: color, width: thickness },
-            ]}
-          />
-          <View
-            style={[
-              styles.line,
-              styles.goldenH,
-              { backgroundColor: color, height: thickness },
-            ]}
-          />
+          <View style={styles.goldenV} />
+          <View style={styles.goldenH} />
         </>
-      )}
-    </View>
-  );
+      );
+
+    default:
+      return null;
+  }
 };
 
-const styles = StyleSheet.create({
-  line: {
-    position: 'absolute',
-  },
-  // Rule of Thirds
-  thirdsV1: { left: '33.33%', height: '100%' },
-  thirdsV2: { left: '66.66%', height: '100%' },
-  thirdsH1: { top: '33.33%', width: '100%' },
-  thirdsH2: { top: '66.66%', width: '100%' },
-  // Square Grid
-  squareV1: { left: '25%', height: '100%' },
-  squareV2: { left: '50%', height: '100%' },
-  squareV3: { left: '75%', height: '100%' },
-  squareH1: { top: '25%', width: '100%' },
-  squareH2: { top: '50%', width: '100%' },
-  squareH3: { top: '75%', width: '100%' },
-  // Golden Ratio
-  goldenV: { left: '61.8%', height: '100%' },
-  goldenH: { top: '61.8%', width: '100%' },
-});
+// Helper to generate dynamic styles based on width/height
+const createGridStyles = ({
+  width,
+  height,
+  thickness,
+  color,
+}: {
+  width: number;
+  height: number;
+  thickness: number;
+  color: string;
+}) =>
+  StyleSheet.create({
+    line: {
+      position: 'absolute',
+      backgroundColor: color,
+    },
+    svg: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+    },
+
+    // Rule of Thirds
+    thirdsV1: {
+      left: width / 3,
+      top: 0,
+      width: thickness,
+      height,
+      ...{ position: 'absolute', backgroundColor: color },
+    },
+    thirdsV2: {
+      left: (2 * width) / 3,
+      top: 0,
+      width: thickness,
+      height,
+      ...{ position: 'absolute', backgroundColor: color },
+    },
+    thirdsH1: {
+      top: height / 3,
+      left: 0,
+      width,
+      height: thickness,
+      ...{ position: 'absolute', backgroundColor: color },
+    },
+    thirdsH2: {
+      top: (2 * height) / 3,
+      left: 0,
+      width,
+      height: thickness,
+      ...{ position: 'absolute', backgroundColor: color },
+    },
+
+    // Square grid
+    squareV1: {
+      left: width / 4,
+      top: 0,
+      width: thickness,
+      height,
+      ...{ position: 'absolute', backgroundColor: color },
+    },
+    squareV2: {
+      left: width / 2,
+      top: 0,
+      width: thickness,
+      height,
+      ...{ position: 'absolute', backgroundColor: color },
+    },
+    squareV3: {
+      left: (3 * width) / 4,
+      top: 0,
+      width: thickness,
+      height,
+      ...{ position: 'absolute', backgroundColor: color },
+    },
+    squareH1: {
+      top: height / 4,
+      left: 0,
+      width,
+      height: thickness,
+      ...{ position: 'absolute', backgroundColor: color },
+    },
+    squareH2: {
+      top: height / 2,
+      left: 0,
+      width,
+      height: thickness,
+      ...{ position: 'absolute', backgroundColor: color },
+    },
+    squareH3: {
+      top: (3 * height) / 4,
+      left: 0,
+      width,
+      height: thickness,
+      ...{ position: 'absolute', backgroundColor: color },
+    },
+
+    // Golden ratio
+    goldenV: {
+      left: width * 0.618,
+      top: 0,
+      width: thickness,
+      height,
+      ...{ position: 'absolute', backgroundColor: color },
+    },
+    goldenH: {
+      top: height * 0.618,
+      left: 0,
+      width,
+      height: thickness,
+      ...{ position: 'absolute', backgroundColor: color },
+    },
+  });
 
 export default GridOverlay;
