@@ -11,14 +11,16 @@ const ImagePreview = ({
   viewMode,
 }: ImagePreviewProps) => {
   const screenWidth = Dimensions.get('window').width;
+  const screenHeight = Dimensions.get('window').height;
+
+  // add option to enlarge image fully
   const containerWidth = screenWidth * 0.9;
   const isPortrait = imageSize.height > imageSize.width;
+  const maxHeight = isPortrait ? screenHeight * 0.55 : screenHeight * 0.9;
 
   const aspectRatio = isPortrait
     ? imageSize.width / imageSize.height
     : imageSize.height / imageSize.width;
-
-  const maxHeight = Math.min(containerWidth / aspectRatio, 550);
 
   return (
     <View style={styles.previewWrapper}>
@@ -32,18 +34,16 @@ const ImagePreview = ({
           },
         ]}
       >
-        <>
-          <Image
-            source={{
-              uri:
-                viewMode === ViewMode.Processed
-                  ? `file://${processedImageUri}`
-                  : imageUri,
-            }}
-            style={[styles.image]}
-          ></Image>
-          {gridType !== GridType.None && <GridOverlay type={gridType} />}
-        </>
+        <Image
+          source={{
+            uri:
+              viewMode === ViewMode.Processed
+                ? `file://${processedImageUri}`
+                : imageUri,
+          }}
+          style={styles.image}
+        />
+        {gridType !== GridType.None && <GridOverlay type={gridType} />}
       </View>
     </View>
   );
@@ -51,16 +51,15 @@ const ImagePreview = ({
 
 const styles = StyleSheet.create({
   previewWrapper: {
-    marginTop: 30,
-    alignItems: 'center',
-    justifyContent: 'flex-start',
     width: '100%',
+    alignItems: 'center',
   },
   imageContainer: {
     alignSelf: 'center',
     overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
+    flexShrink: 1,
   },
   image: {
     width: '100%',
