@@ -2,16 +2,14 @@ import { Dimensions, Image, StyleSheet, View } from 'react-native';
 import { ImagePreviewProps } from './ImagePreview.types';
 import GridOverlay from '../GridOverlay/GridOverlay';
 import { GridType, ViewMode } from '../../utils/constants/constants';
-import { IconButton } from 'react-native-paper';
-import { useState } from 'react';
 
 const ImagePreview = ({
   imageUri,
   processedImageUri,
   imageSize,
   gridType,
+  viewMode,
 }: ImagePreviewProps) => {
-  const [viewMode, setViewMode] = useState(ViewMode.Processed);
   const screenWidth = Dimensions.get('window').width;
   const containerWidth = screenWidth * 0.9;
   const isPortrait = imageSize.height > imageSize.width;
@@ -21,14 +19,6 @@ const ImagePreview = ({
     : imageSize.height / imageSize.width;
 
   const maxHeight = Math.min(containerWidth / aspectRatio, 550);
-
-  const handleChangeViewMode = () => {
-    if (viewMode === ViewMode.Original) {
-      setViewMode(ViewMode.Processed);
-    } else {
-      setViewMode(ViewMode.Original);
-    }
-  };
 
   return (
     <View style={styles.previewWrapper}>
@@ -43,13 +33,6 @@ const ImagePreview = ({
         ]}
       >
         <>
-          <IconButton
-            iconColor="black"
-            style={{ position: 'absolute', top: 0, right: 0, zIndex: 1000 }}
-            icon="eye"
-            size={20}
-            onPress={handleChangeViewMode}
-          />
           <Image
             source={{
               uri:
@@ -58,7 +41,7 @@ const ImagePreview = ({
                   : imageUri,
             }}
             style={[styles.image]}
-          />
+          ></Image>
           {gridType !== GridType.None && <GridOverlay type={gridType} />}
         </>
       </View>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Image, StyleSheet, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
+import { Button } from 'react-native-paper';
 import { NativeModules } from 'react-native';
 import { RootStackParamList } from '../../../App';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -13,6 +14,7 @@ import {
   BOTTOM_APPBAR_HEIGHT,
   GridType,
   MenuItems,
+  ViewMode,
 } from '../../utils/constants/constants';
 const { ImageProcessor } = NativeModules;
 
@@ -32,6 +34,7 @@ const ImageProcessing = ({
     MenuItems.Posterize,
   );
   const [gridType, setGridType] = useState<GridType>(GridType.None);
+  const [viewMode, setViewMode] = useState(ViewMode.Processed);
 
   useEffect(() => {
     calculateImageSize();
@@ -153,6 +156,23 @@ const ImageProcessing = ({
 
   const handleGridTypeChange = (type: GridType) => setGridType(type);
 
+  const handleChangeViewMode = () => {
+    if (viewMode === ViewMode.Original) {
+      setViewMode(ViewMode.Processed);
+    } else {
+      setViewMode(ViewMode.Original);
+    }
+  };
+
+  const getSectionTitle = () => {
+    if (selectedAction === MenuItems.Posterize) {
+      return 'Detail & Focus';
+    } else if (selectedAction === MenuItems.Threshold) {
+      return 'Histogram';
+    }
+    return 'Grid Type';
+  };
+
   if (!imageUri) return null;
   if (!imageSize) return <ActivityIndicator color="orange" size="small" />;
 
@@ -163,15 +183,25 @@ const ImageProcessing = ({
         { paddingBottom: BOTTOM_APPBAR_HEIGHT + bottom },
       ]}
     >
+      <Button
+        icon={viewMode === ViewMode.Processed ? 'eye' : 'eye-off'}
+        textColor="black"
+        onPress={handleChangeViewMode}
+        style={{ marginRight: 'auto' }}
+      >
+        View
+      </Button>
       <View style={styles.imagePreviewWrapper}>
         <ImagePreview
           imageUri={imageUri}
           processedImageUri={processedImageUri ?? ''}
           imageSize={imageSize}
           gridType={gridType}
+          viewMode={viewMode}
         />
       </View>
       <View style={styles.controlsContainer}>
+        <Text style={styles.controlsTitle}>{getSectionTitle()}</Text>
         {selectedAction === MenuItems.Posterize && (
           <PosterizeControls
             toneValues={[toneValues]}
@@ -235,24 +265,29 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'flex-start',
-  },
-  topBar: {
-    width: '100%',
-    alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 8,
+    marginTop: 10,
   },
   imagePreviewWrapper: {
     flex: 1,
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+    paddingTop: 20,
   },
   controlsContainer: {
     width: '100%',
     alignSelf: 'stretch',
-    padding: 12,
+    paddingHorizontal: 10,
     alignItems: 'center',
+    height: 170,
+    justifyContent: 'flex-start',
+  },
+  controlsTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'black',
+    marginRight: 'auto',
+    marginBottom: 8,
   },
   bottom: {
     position: 'absolute',

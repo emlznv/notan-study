@@ -24,7 +24,12 @@ const GridControls = ({ selected, onChange }: GridControlsProps) => (
       dropdownIconColor={'gray'}
     >
       {GRID_OPTIONS.map(opt => (
-        <Picker.Item key={opt.value} label={opt.label} value={opt.value} />
+        <Picker.Item
+          style={{ fontSize: 14 }}
+          key={opt.value}
+          label={opt.label}
+          value={opt.value}
+        />
       ))}
     </Picker>
   </View>
@@ -32,15 +37,14 @@ const GridControls = ({ selected, onChange }: GridControlsProps) => (
 
 const styles = StyleSheet.create({
   container: {
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: 'lightgray',
     borderRadius: 20,
     width: '100%',
+    marginTop: 20,
   },
   picker: {
     color: 'black',
-    fontSize: 12,
-    height: 55,
   },
 });
 
