@@ -1,25 +1,22 @@
 import { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
-import { SegmentedButtons } from 'react-native-paper';
+import { Button } from 'react-native-paper';
 import { NativeModules } from 'react-native';
 import { RootStackParamList } from '../../../App';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Appbar } from 'react-native-paper';
+import { ActivityIndicator, Appbar } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ImagePreview from '../../components/ImagePreview/ImagePreview';
 import PosterizeControls from '../../components/PosterizeControls/PosterizeControls';
 import ThresholdControls from '../../components/ThresholdControls/ThresholdControls';
 import GridControls from '../../components/GridControls/GridControls';
-import { GridType, ViewMode } from '../../utils/constants/constants';
+import {
+  BOTTOM_APPBAR_HEIGHT,
+  GridType,
+  MenuItems,
+  ViewMode,
+} from '../../utils/constants/constants';
 const { ImageProcessor } = NativeModules;
-
-const BOTTOM_APPBAR_HEIGHT = 70;
-
-enum MenuItems {
-  Posterize = 0,
-  Threshold = 1,
-  Grid = 2,
-}
 
 const ImageProcessing = ({
   route,
@@ -36,8 +33,8 @@ const ImageProcessing = ({
   const [selectedAction, setSelectedAction] = useState<number | null>(
     MenuItems.Posterize,
   );
-  const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Processed);
   const [gridType, setGridType] = useState<GridType>(GridType.None);
+  const [viewMode, setViewMode] = useState(ViewMode.Processed);
 
   useEffect(() => {
     calculateImageSize();
@@ -144,7 +141,6 @@ const ImageProcessing = ({
     setThresholdValues(values);
 
     try {
-      // If your native module expects an array, pass values directly
       const processedUri = await ImageProcessor.applyThreshold(
         imageUri,
         values,
@@ -160,8 +156,25 @@ const ImageProcessing = ({
 
   const handleGridTypeChange = (type: GridType) => setGridType(type);
 
+  const handleChangeViewMode = () => {
+    if (viewMode === ViewMode.Original) {
+      setViewMode(ViewMode.Processed);
+    } else {
+      setViewMode(ViewMode.Original);
+    }
+  };
+
+  const getSectionTitle = () => {
+    if (selectedAction === MenuItems.Posterize) {
+      return 'Detail & Focus';
+    } else if (selectedAction === MenuItems.Threshold) {
+      return 'Histogram';
+    }
+    return 'Grid Type';
+  };
+
   if (!imageUri) return null;
-  if (!imageSize) return <Text>Loading image...</Text>;
+  if (!imageSize) return <ActivityIndicator color="orange" size="small" />;
 
   return (
     <View
@@ -170,100 +183,78 @@ const ImageProcessing = ({
         { paddingBottom: BOTTOM_APPBAR_HEIGHT + bottom },
       ]}
     >
-      <View style={styles.topBar}>
-        <SegmentedButtons
-          value={viewMode}
-          density="small"
-          style={{ width: 50, justifyContent: 'center', marginTop: 20 }}
-          onValueChange={value => setViewMode(value)}
-          buttons={[
-            {
-              value: ViewMode.Original,
-              icon: 'image',
-            },
-            {
-              value: ViewMode.Processed,
-              icon: 'image-edit',
-            },
-            {
-              value: ViewMode.Both,
-              icon: 'compare',
-            },
-          ]}
-        />
-      </View>
+      <Button
+        icon={viewMode === ViewMode.Processed ? 'eye' : 'eye-off'}
+        textColor="black"
+        onPress={handleChangeViewMode}
+        style={{ marginRight: 'auto' }}
+      >
+        View
+      </Button>
       <View style={styles.imagePreviewWrapper}>
         <ImagePreview
           imageUri={imageUri}
           processedImageUri={processedImageUri ?? ''}
-          viewMode={viewMode}
           imageSize={imageSize}
           gridType={gridType}
+          viewMode={viewMode}
         />
       </View>
-      {viewMode !== ViewMode.Original && (
-        <View style={styles.controlsContainer}>
-          {selectedAction === MenuItems.Posterize && (
-            <PosterizeControls
-              toneValues={[toneValues]}
-              simplicity={[simplicity]}
-              focusBlur={[focusBlur]}
-              onToneChange={handleToneValueSliderChange}
-              onToneFinish={handleToneValueSliderFinish}
-              onSimplicityChange={handleSimplicitySliderChange}
-              onSimplicityFinish={handleSimplicitySliderFinish}
-              onFocusBlurChange={handleFocusBlurSliderChange}
-              onFocusBlurFinish={handleFocusBlurSliderFinish}
-            />
-          )}
-          {selectedAction === MenuItems.Threshold && (
-            <ThresholdControls
-              histogram={histogram}
-              threshold={thresholdValues}
-              onThresholdChange={handleThresholdSliderChange}
-              onThresholdFinish={handleThresholdSliderFinish}
-            />
-          )}
-          {selectedAction === MenuItems.Grid && (
-            <GridControls selected={gridType} onChange={handleGridTypeChange} />
-          )}
-        </View>
-      )}
-      {viewMode !== ViewMode.Original && (
-        <Appbar
-          style={[
-            styles.bottom,
-            {
-              height: BOTTOM_APPBAR_HEIGHT + bottom,
-              // backgroundColor: theme.colors.elevation.level2,
-            },
-          ]}
-          safeAreaInsets={{ bottom }}
-        >
-          <Appbar.Action
-            icon="image-filter-black-white"
-            style={styles.appBarButton}
-            iconColor={
-              selectedAction === MenuItems.Posterize ? 'orange' : 'gray'
-            }
-            onPress={() => setSelectedAction(MenuItems.Posterize)}
+      <View style={styles.controlsContainer}>
+        <Text style={styles.controlsTitle}>{getSectionTitle()}</Text>
+        {selectedAction === MenuItems.Posterize && (
+          <PosterizeControls
+            toneValues={[toneValues]}
+            simplicity={[simplicity]}
+            focusBlur={[focusBlur]}
+            onToneChange={handleToneValueSliderChange}
+            onToneFinish={handleToneValueSliderFinish}
+            onSimplicityChange={handleSimplicitySliderChange}
+            onSimplicityFinish={handleSimplicitySliderFinish}
+            onFocusBlurChange={handleFocusBlurSliderChange}
+            onFocusBlurFinish={handleFocusBlurSliderFinish}
           />
-          <Appbar.Action
-            icon="sine-wave"
-            style={styles.appBarButton}
-            iconColor={
-              selectedAction === MenuItems.Threshold ? 'orange' : 'gray'
-            }
-            onPress={() => setSelectedAction(MenuItems.Threshold)}
+        )}
+        {selectedAction === MenuItems.Threshold && (
+          <ThresholdControls
+            histogram={histogram}
+            threshold={thresholdValues}
+            onThresholdChange={handleThresholdSliderChange}
+            onThresholdFinish={handleThresholdSliderFinish}
           />
-          <Appbar.Action
-            icon="grid"
-            style={styles.appBarButton}
-            iconColor={selectedAction === MenuItems.Grid ? 'orange' : 'gray'}
-            onPress={() => setSelectedAction(MenuItems.Grid)}
-          />
-        </Appbar>
-      )}
+        )}
+        {selectedAction === MenuItems.Grid && (
+          <GridControls selected={gridType} onChange={handleGridTypeChange} />
+        )}
+      </View>
+      <Appbar
+        style={[
+          styles.bottom,
+          {
+            height: BOTTOM_APPBAR_HEIGHT + bottom,
+          },
+        ]}
+        safeAreaInsets={{ bottom }}
+      >
+        <Appbar.Action
+          icon="image-filter-black-white"
+          style={styles.appBarButton}
+          iconColor={selectedAction === MenuItems.Posterize ? 'orange' : 'gray'}
+          onPress={() => setSelectedAction(MenuItems.Posterize)}
+        />
+        <Appbar.Action
+          icon="sine-wave"
+          style={styles.appBarButton}
+          iconColor={selectedAction === MenuItems.Threshold ? 'orange' : 'gray'}
+          onPress={() => setSelectedAction(MenuItems.Threshold)}
+        />
+        <Appbar.Action
+          icon="grid"
+          style={styles.appBarButton}
+          iconColor={selectedAction === MenuItems.Grid ? 'orange' : 'gray'}
+          onPress={() => setSelectedAction(MenuItems.Grid)}
+        />
+      </Appbar>
     </View>
   );
 };
@@ -274,24 +265,29 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'flex-start',
-  },
-  topBar: {
-    width: '100%',
-    alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 8,
+    marginTop: 10,
   },
   imagePreviewWrapper: {
     flex: 1,
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+    paddingTop: 20,
   },
   controlsContainer: {
     width: '100%',
     alignSelf: 'stretch',
-    padding: 12,
+    paddingHorizontal: 10,
     alignItems: 'center',
+    height: 170,
+    justifyContent: 'flex-start',
+  },
+  controlsTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'black',
+    marginRight: 'auto',
+    marginBottom: 8,
   },
   bottom: {
     position: 'absolute',

@@ -47,7 +47,7 @@ const Home = ({
       const image = await ImagePicker.openCamera({
         cropping: true,
         includeBase64: false,
-        freeStyleCropEnabled: true,
+        freeStyleCropEnabled: false,
         avoidEmptySpaceAroundImage: false,
       });
 
@@ -64,7 +64,7 @@ const Home = ({
       const image = await ImagePicker.openPicker({
         cropping: true,
         includeBase64: false,
-        freeStyleCropEnabled: true,
+        freeStyleCropEnabled: false,
         avoidEmptySpaceAroundImage: false,
       });
 

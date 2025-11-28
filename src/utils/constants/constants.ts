@@ -9,5 +9,12 @@ export enum GridType {
 export enum ViewMode {
   Original = 'original',
   Processed = 'processed',
-  Both = 'both',
+}
+
+export const BOTTOM_APPBAR_HEIGHT = 70;
+
+export enum MenuItems {
+  Posterize = 0,
+  Threshold = 1,
+  Grid = 2,
 }
