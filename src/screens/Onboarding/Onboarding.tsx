@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import ImageSlider from '../../components/ImageSlider/ImageSlider';
-import { Button, IconButton } from 'react-native-paper';
+import { Button, IconButton, useTheme } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../../App';
 
 const Onboarding = ({
   navigation,
 }: NativeStackScreenProps<RootStackParamList, 'Onboarding'>) => {
+  const theme = useTheme();
   const [currentStep, setCurrentStep] = useState(0);
 
   const steps = [
@@ -41,7 +42,9 @@ const Onboarding = ({
   const { title, body } = steps[currentStep];
 
   return (
-    <View style={styles.container}>
+    <View
+      style={{ ...styles.container, backgroundColor: theme.colors.background }}
+    >
       <Text style={styles.title}>{title}</Text>
       <ImageSlider
         images={Array.from(steps.map(step => step.image))}
@@ -50,14 +53,17 @@ const Onboarding = ({
       />
       <Text style={styles.body}>{body}</Text>
       <View style={styles.buttonRow}>
-        <Button onPress={handleSkip}>Skip</Button>
+        <Button textColor={theme.colors.onSurface} onPress={handleSkip}>
+          Skip
+        </Button>
         <IconButton
           icon="arrow-right"
           mode="contained"
-          containerColor="#6200ee"
+          containerColor={theme.colors.primary}
+          iconColor={theme.colors.background}
           size={30}
           onPress={handleNext}
-          style={{ marginLeft: 'auto' }}
+          style={styles.nextButton}
         />
       </View>
     </View>
@@ -69,7 +75,6 @@ const styles = StyleSheet.create({
     padding: 24,
     flex: 1,
     justifyContent: 'space-evenly',
-    backgroundColor: '#fff',
   },
   title: {
     fontSize: 24,
@@ -80,13 +85,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     height: 90,
     textAlign: 'center',
-    color: '#666',
   },
   buttonRow: {
     flexDirection: 'row',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  nextButton: {
+    marginLeft: 'auto',
   },
 });
 

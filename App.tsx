@@ -1,13 +1,15 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
+import { StatusBar, StyleSheet, View } from 'react-native';
 import { PaperProvider } from 'react-native-paper';
 import Splash from './src/screens/Splash/Splash';
 import Onboarding from './src/screens/Onboarding/Onboarding';
 import Home from './src/screens/Home/Home';
 import { useEffect, useState } from 'react';
 import ImageProcessing from './src/screens/ImageProcessing/ImageProcessing';
+import { lightTheme } from './src/utils/constants/theme/theme';
+import { SPLASH_TIMEOUT } from './src/utils/constants/constants';
 
 export type RootStackParamList = {
   Onboarding: undefined;
@@ -17,10 +19,7 @@ export type RootStackParamList = {
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-const splash_timeout = 2000;
-
 function App() {
-  const isDarkMode = useColorScheme() === 'dark';
   const [isFirstLaunch, setIsFirstLaunch] = useState<boolean | null>(null);
   const [showSplash, setShowSplash] = useState(true);
 
@@ -35,7 +34,7 @@ function App() {
       }
       setTimeout(() => {
         setShowSplash(false);
-      }, splash_timeout);
+      }, SPLASH_TIMEOUT);
     };
 
     initializeApp();
@@ -44,9 +43,9 @@ function App() {
   if (showSplash || isFirstLaunch === null) return <Splash />;
 
   return (
-    <PaperProvider>
+    <PaperProvider theme={lightTheme}>
       <View style={styles.container}>
-        <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+        <StatusBar barStyle={'light-content'} />
         <NavigationContainer>
           <Stack.Navigator
             initialRouteName={isFirstLaunch ? 'Onboarding' : 'Home'}

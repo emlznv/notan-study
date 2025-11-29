@@ -5,8 +5,10 @@ import {
   Text,
   Alert,
   PermissionsAndroid,
+  Image,
+  TouchableOpacity,
 } from 'react-native';
-import { Button, IconButton } from 'react-native-paper';
+import { Button, useTheme } from 'react-native-paper';
 import ImagePicker, { ImageOrVideo } from 'react-native-image-crop-picker';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../../App';
@@ -14,6 +16,8 @@ import { RootStackParamList } from '../../../App';
 const Home = ({
   navigation,
 }: NativeStackScreenProps<RootStackParamList, 'Home'>) => {
+  const theme = useTheme();
+
   const requestCameraPermission = async () => {
     try {
       const granted = await PermissionsAndroid.request(
@@ -82,28 +86,35 @@ const Home = ({
   };
 
   return (
-    <View style={styles.container}>
-      <Text>Lorem Ipsum Title</Text>
-      <View style={styles.uploadContainer}>
-        <IconButton
-          iconColor="black"
-          icon="image-plus"
-          style={{ margin: 20 }}
-          size={100}
+    <>
+      <Text style={styles.title}>Select an image you want to study</Text>
+      <View style={styles.container}>
+        <TouchableOpacity
           onPress={handlePickFromGallery}
-        />
-        <Text>Upload image</Text>
+          style={{
+            ...styles.uploadContainer,
+            borderColor: theme.colors.tertiary,
+          }}
+        >
+          <Image
+            source={require('../../assets/image-upload.png')}
+            style={styles.image}
+          />
+          <Text>Tap to upload</Text>
+        </TouchableOpacity>
+        <Text>OR</Text>
+        <Button
+          icon="camera"
+          textColor={theme.colors.background}
+          buttonColor={theme.colors.primary}
+          mode="contained"
+          onPress={handleTakePhoto}
+          style={styles.takePhotoButton}
+        >
+          Take photo
+        </Button>
       </View>
-      <Text>or</Text>
-      <Button
-        icon="camera"
-        textColor="black"
-        mode="outlined"
-        onPress={handleTakePhoto}
-      >
-        Take photo
-      </Button>
-    </View>
+    </>
   );
 };
 
@@ -113,17 +124,30 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  title: {
+    fontSize: 24,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginTop: 50,
+  },
   uploadContainer: {
-    borderWidth: 2,
-    borderRadius: 10,
-    borderColor: 'gray',
-    borderStyle: 'dotted',
-    padding: 30,
     alignItems: 'center',
+    borderStyle: 'dotted',
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingBottom: 10,
+    marginBottom: 40,
   },
   image: {
-    width: 200,
-    height: 200,
+    width: 270,
+    height: 270,
+  },
+  takePhotoButton: {
+    marginTop: 30,
+  },
+  addIcon: {
+    marginRight: 5,
+    marginTop: 5,
   },
 });
 

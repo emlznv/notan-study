@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import Svg, { Line } from 'react-native-svg';
 import { GridOverlayProps } from './GridOverlayProps.types';
 import { GridType } from '../../utils/constants/constants';
+import { useTheme } from 'react-native-paper';
 
 interface DynamicGridOverlayProps extends GridOverlayProps {
   width: number;
@@ -11,15 +12,21 @@ interface DynamicGridOverlayProps extends GridOverlayProps {
 
 const GridOverlay = ({
   type = GridType.None,
-  color = 'orange',
-  thickness = 1,
+  color,
+  thickness = 2,
   width = 0,
   height = 0,
 }: DynamicGridOverlayProps) => {
+  const theme = useTheme();
   if (!width || !height || type === GridType.None) return null;
 
   // Generate dynamic styles based on width/height
-  const styles = createGridStyles({ width, height, thickness, color });
+  const styles = createGridStyles({
+    width,
+    height,
+    thickness,
+    color: theme.colors.primary,
+  });
 
   switch (type) {
     case GridType.Thirds:
