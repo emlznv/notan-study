@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
-import { Button, useTheme } from 'react-native-paper';
+import { Alert, Image, StyleSheet, Text, View } from 'react-native';
+import RNFS from 'react-native-fs';
+import { useTheme } from 'react-native-paper';
 import { NativeModules } from 'react-native';
 import { RootStackParamList } from '../../../App';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -16,6 +17,8 @@ import {
   MenuItems,
   ViewMode,
 } from '../../utils/constants/constants';
+import { CameraRoll } from '@react-native-camera-roll/camera-roll';
+import { useNavigation } from '@react-navigation/native';
 const { ImageProcessor } = NativeModules;
 
 const ImageProcessing = ({
@@ -25,7 +28,9 @@ const ImageProcessing = ({
   const { imageUri } = route.params;
   const { bottom } = useSafeAreaInsets();
 
-  const [processedImageUri, setProcessedImageUri] = useState(null);
+  const [processedImageUri, setProcessedImageUri] = useState<string | null>(
+    null,
+  );
   const [toneValues, setToneValues] = useState(3);
   const [simplicity, setSimplicity] = useState(0);
   const [focusBlur, setFocusBlur] = useState(0);
@@ -36,6 +41,8 @@ const ImageProcessing = ({
   );
   const [gridType, setGridType] = useState<GridType>(GridType.None);
   const [viewMode, setViewMode] = useState(ViewMode.Processed);
+
+  const navigation = useNavigation();
 
   useEffect(() => {
     calculateImageSize();
@@ -165,6 +172,29 @@ const ImageProcessing = ({
     }
   };
 
+  const handleSaveImage = async () => {
+    if (!processedImageUri) return;
+
+    try {
+      // 1. Create a temporary public file path
+      const fileName = `notan-study_${Date.now()}.png`;
+      const destPath = `${RNFS.CachesDirectoryPath}/${fileName}`;
+
+      // 2. Copy the private file to the temp path
+      await RNFS.copyFile(processedImageUri, destPath);
+
+      // 3. Save the temp file to the gallery
+      const savedUri = await CameraRoll.saveAsset(`file://${destPath}`, {
+        type: 'photo',
+      });
+      Alert.alert('Saved!', 'Image saved to gallery.');
+      console.log('Saved URI:', savedUri);
+    } catch (error) {
+      console.error('Failed to save image:', error);
+      Alert.alert('Error', 'Failed to save image.');
+    }
+  };
+
   const getSectionTitle = () => {
     if (selectedAction === MenuItems.Posterize) {
       return 'Detail & Focus';
@@ -179,97 +209,103 @@ const ImageProcessing = ({
     return <ActivityIndicator color={theme.colors.primary} size="small" />;
 
   return (
-    <View
-      style={[
-        styles.container,
-        { paddingBottom: BOTTOM_APPBAR_HEIGHT + bottom },
-      ]}
-    >
-      <Button
-        icon={viewMode === ViewMode.Processed ? 'eye' : 'eye-off'}
-        textColor="black"
-        onPress={handleChangeViewMode}
-        style={styles.viewModeButton}
-      >
-        View
-      </Button>
-      <View style={styles.imagePreviewWrapper}>
-        <ImagePreview
-          imageUri={imageUri}
-          processedImageUri={processedImageUri ?? ''}
-          imageSize={imageSize}
-          gridType={gridType}
-          viewMode={viewMode}
+    <>
+      <Appbar.Header>
+        <Appbar.BackAction onPress={() => navigation.goBack()} />
+        <Appbar.Content title="" />
+        <Appbar.Action
+          icon={
+            viewMode === ViewMode.Processed ? 'eye-outline' : 'eye-off-outline'
+          }
+          onPress={handleChangeViewMode}
         />
-      </View>
-      <View style={styles.controlsContainer}>
-        <Text style={styles.controlsTitle}>{getSectionTitle()}</Text>
-        {selectedAction === MenuItems.Posterize && (
-          <PosterizeControls
-            toneValues={[toneValues]}
-            simplicity={[simplicity]}
-            focusBlur={[focusBlur]}
-            onToneChange={handleToneValueSliderChange}
-            onToneFinish={handleToneValueSliderFinish}
-            onSimplicityChange={handleSimplicitySliderChange}
-            onSimplicityFinish={handleSimplicitySliderFinish}
-            onFocusBlurChange={handleFocusBlurSliderChange}
-            onFocusBlurFinish={handleFocusBlurSliderFinish}
-          />
-        )}
-        {selectedAction === MenuItems.Threshold && (
-          <ThresholdControls
-            histogram={histogram}
-            threshold={thresholdValues}
-            onThresholdChange={handleThresholdSliderChange}
-            onThresholdFinish={handleThresholdSliderFinish}
-          />
-        )}
-        {selectedAction === MenuItems.Grid && (
-          <GridControls selected={gridType} onChange={handleGridTypeChange} />
-        )}
-      </View>
-      <Appbar
+
+        <Appbar.Action icon="content-save-outline" onPress={handleSaveImage} />
+      </Appbar.Header>
+      <View
         style={[
-          styles.bottom,
-          {
-            height: BOTTOM_APPBAR_HEIGHT + bottom,
-          },
+          styles.container,
+          { paddingBottom: BOTTOM_APPBAR_HEIGHT + bottom },
         ]}
-        safeAreaInsets={{ bottom }}
       >
-        <Appbar.Action
-          icon="image-filter-black-white"
-          style={styles.appBarButton}
-          iconColor={
-            selectedAction === MenuItems.Posterize
-              ? theme.colors.primary
-              : theme.colors.tertiary
-          }
-          onPress={() => setSelectedAction(MenuItems.Posterize)}
-        />
-        <Appbar.Action
-          icon="sine-wave"
-          style={styles.appBarButton}
-          iconColor={
-            selectedAction === MenuItems.Threshold
-              ? theme.colors.primary
-              : theme.colors.tertiary
-          }
-          onPress={() => setSelectedAction(MenuItems.Threshold)}
-        />
-        <Appbar.Action
-          icon="grid"
-          style={styles.appBarButton}
-          iconColor={
-            selectedAction === MenuItems.Grid
-              ? theme.colors.primary
-              : theme.colors.tertiary
-          }
-          onPress={() => setSelectedAction(MenuItems.Grid)}
-        />
-      </Appbar>
-    </View>
+        <View style={styles.imagePreviewWrapper}>
+          <ImagePreview
+            imageUri={imageUri}
+            processedImageUri={processedImageUri ?? ''}
+            imageSize={imageSize}
+            gridType={gridType}
+            viewMode={viewMode}
+          />
+        </View>
+        <View style={styles.controlsContainer}>
+          <Text style={styles.controlsTitle}>{getSectionTitle()}</Text>
+          {selectedAction === MenuItems.Posterize && (
+            <PosterizeControls
+              toneValues={[toneValues]}
+              simplicity={[simplicity]}
+              focusBlur={[focusBlur]}
+              onToneChange={handleToneValueSliderChange}
+              onToneFinish={handleToneValueSliderFinish}
+              onSimplicityChange={handleSimplicitySliderChange}
+              onSimplicityFinish={handleSimplicitySliderFinish}
+              onFocusBlurChange={handleFocusBlurSliderChange}
+              onFocusBlurFinish={handleFocusBlurSliderFinish}
+            />
+          )}
+          {selectedAction === MenuItems.Threshold && (
+            <ThresholdControls
+              histogram={histogram}
+              threshold={thresholdValues}
+              onThresholdChange={handleThresholdSliderChange}
+              onThresholdFinish={handleThresholdSliderFinish}
+            />
+          )}
+          {selectedAction === MenuItems.Grid && (
+            <GridControls selected={gridType} onChange={handleGridTypeChange} />
+          )}
+        </View>
+        <Appbar
+          style={[
+            styles.bottom,
+            {
+              height: BOTTOM_APPBAR_HEIGHT + bottom,
+            },
+          ]}
+          safeAreaInsets={{ bottom }}
+        >
+          <Appbar.Action
+            icon="image-filter-black-white"
+            style={styles.appBarButton}
+            iconColor={
+              selectedAction === MenuItems.Posterize
+                ? theme.colors.primary
+                : theme.colors.tertiary
+            }
+            onPress={() => setSelectedAction(MenuItems.Posterize)}
+          />
+          <Appbar.Action
+            icon="sine-wave"
+            style={styles.appBarButton}
+            iconColor={
+              selectedAction === MenuItems.Threshold
+                ? theme.colors.primary
+                : theme.colors.tertiary
+            }
+            onPress={() => setSelectedAction(MenuItems.Threshold)}
+          />
+          <Appbar.Action
+            icon="grid"
+            style={styles.appBarButton}
+            iconColor={
+              selectedAction === MenuItems.Grid
+                ? theme.colors.primary
+                : theme.colors.tertiary
+            }
+            onPress={() => setSelectedAction(MenuItems.Grid)}
+          />
+        </Appbar>
+      </View>
+    </>
   );
 };
 
@@ -292,8 +328,9 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     paddingHorizontal: 15,
     alignItems: 'center',
-    height: 170,
+    height: 160,
     justifyContent: 'flex-start',
+    marginTop: 10,
   },
   controlsTitle: {
     fontSize: 16,
