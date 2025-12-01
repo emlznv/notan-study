@@ -8,8 +8,9 @@ import Onboarding from './src/screens/Onboarding/Onboarding';
 import Home from './src/screens/Home/Home';
 import { useEffect, useState } from 'react';
 import ImageProcessing from './src/screens/ImageProcessing/ImageProcessing';
-import { lightTheme } from './src/utils/constants/theme/theme';
+import { lightTheme } from './src/utils/theme/theme';
 import { SPLASH_TIMEOUT } from './src/utils/constants/constants';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export type RootStackParamList = {
   Onboarding: undefined;
@@ -44,19 +45,24 @@ function App() {
 
   return (
     <PaperProvider theme={lightTheme}>
-      <View style={styles.container}>
-        <StatusBar barStyle={'light-content'} />
-        <NavigationContainer>
-          <Stack.Navigator
-            initialRouteName={isFirstLaunch ? 'Onboarding' : 'Home'}
-            screenOptions={{ headerShown: false }}
-          >
-            <Stack.Screen name="Onboarding" component={Onboarding} />
-            <Stack.Screen name="Home" component={Home} />
-            <Stack.Screen name="ImageProcessing" component={ImageProcessing} />
-          </Stack.Navigator>
-        </NavigationContainer>
-      </View>
+      <GestureHandlerRootView>
+        <View style={styles.container}>
+          <StatusBar barStyle={'light-content'} />
+          <NavigationContainer>
+            <Stack.Navigator
+              initialRouteName={isFirstLaunch ? 'Onboarding' : 'Home'}
+              screenOptions={{ headerShown: false }}
+            >
+              <Stack.Screen name="Onboarding" component={Onboarding} />
+              <Stack.Screen name="Home" component={Home} />
+              <Stack.Screen
+                name="ImageProcessing"
+                component={ImageProcessing}
+              />
+            </Stack.Navigator>
+          </NavigationContainer>
+        </View>
+      </GestureHandlerRootView>
     </PaperProvider>
   );
 }

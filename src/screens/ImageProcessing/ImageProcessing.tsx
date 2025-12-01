@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Alert, Image, StyleSheet, Text, View } from 'react-native';
-import RNFS from 'react-native-fs';
+import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from 'react-native-paper';
-import { NativeModules } from 'react-native';
 import { RootStackParamList } from '../../../App';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ActivityIndicator, Appbar } from 'react-native-paper';
@@ -17,9 +15,19 @@ import {
   MenuItems,
   ViewMode,
 } from '../../utils/constants/constants';
-import { CameraRoll } from '@react-native-camera-roll/camera-roll';
 import { useNavigation } from '@react-navigation/native';
-const { ImageProcessor } = NativeModules;
+import { useImageProcessing } from '../../utils/hooks/useImageProcessing';
+import {
+  getImageSize,
+  saveImageToGallery,
+} from '../../utils/helpers/image-helper';
+
+const enum SliderType {
+  Tone,
+  Simplicity,
+  Focus,
+  Threshold,
+}
 
 const ImageProcessing = ({
   route,
@@ -28,9 +36,8 @@ const ImageProcessing = ({
   const { imageUri } = route.params;
   const { bottom } = useSafeAreaInsets();
 
-  const [processedImageUri, setProcessedImageUri] = useState<string | null>(
-    null,
-  );
+  const { processImage, processedImageUri, applyThreshold, getHistogram } =
+    useImageProcessing(imageUri);
   const [toneValues, setToneValues] = useState(3);
   const [simplicity, setSimplicity] = useState(0);
   const [focusBlur, setFocusBlur] = useState(0);
@@ -41,26 +48,30 @@ const ImageProcessing = ({
   );
   const [gridType, setGridType] = useState<GridType>(GridType.None);
   const [viewMode, setViewMode] = useState(ViewMode.Processed);
+  const [imageSize, setImageSize] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
 
   const navigation = useNavigation();
 
   useEffect(() => {
+    const calculateImageSize = async () => {
+      const size = await getImageSize(imageUri);
+      setImageSize(size);
+    };
     calculateImageSize();
-    processImage(imageUri, toneValues, simplicity, focusBlur);
+    processImage(toneValues, simplicity, focusBlur);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (imageUri) {
-      ImageProcessor.getHistogram(imageUri)
-        .then((hist: number[]) => {
-          setHistogram(hist);
-        })
-        .catch((e: any) => {
-          console.error('Failed to load histogram', e);
-        });
-    }
-  }, [imageUri]);
+    const loadHistogram = async () => {
+      const data = await getHistogram();
+      setHistogram(data);
+    };
+    imageUri && loadHistogram();
+  }, [imageUri, getHistogram]);
 
   useEffect(() => {
     const steps = toneValues - 1;
@@ -72,94 +83,43 @@ const ImageProcessing = ({
     setThresholdValues(newThresholds);
   }, [toneValues]);
 
-  const [imageSize, setImageSize] = useState<{
-    width: number;
-    height: number;
-  } | null>(null);
-
-  const calculateImageSize = () => {
-    if (!imageUri) {
-      setImageSize(null);
-      return;
-    }
-
-    Image.getSize(
-      imageUri,
-      (width, height) => {
-        setImageSize({ width, height });
-      },
-      error => {
-        console.error('Failed to get image size:', error);
-        setImageSize(null);
-      },
-    );
-  };
-
-  const processImage = async (
-    uri: string,
-    tones: number,
-    simplicityValue: number,
-    focusBlurValue: number,
-  ) => {
-    try {
-      const processedUri = await ImageProcessor.processImage(
-        uri,
-        tones,
-        simplicityValue,
-        focusBlurValue,
-      );
-      if (!processedUri) {
-        console.warn('Warning: Processed URI is null or undefined');
-      }
-      setProcessedImageUri(processedUri);
-    } catch (error) {
-      console.error('Processing failed:', error);
+  const handleSliderChange = (type: SliderType) => (values: number[]) => {
+    switch (type) {
+      case SliderType.Tone:
+        setToneValues(values[0]);
+        break;
+      case SliderType.Simplicity:
+        setSimplicity(values[0]);
+        break;
+      case SliderType.Focus:
+        setFocusBlur(values[0]);
+        break;
+      case SliderType.Threshold:
+        setThresholdValues(values);
+        break;
     }
   };
 
-  const handleToneValueSliderChange = (values: number[]) => {
-    setToneValues(values[0]);
+  const handleSliderFinish = (type: SliderType) => (values: number[]) => {
+    switch (type) {
+      case SliderType.Tone:
+        processImage(values[0], simplicity, focusBlur);
+        break;
+      case SliderType.Simplicity:
+        processImage(toneValues, values[0], focusBlur);
+        break;
+      case SliderType.Focus:
+        processImage(toneValues, simplicity, values[0]);
+        break;
+      case SliderType.Threshold:
+        handleApplyThreshold(values);
+        break;
+    }
   };
 
-  const handleToneValueSliderFinish = (values: number[]) => {
-    processImage(imageUri, values[0], simplicity, focusBlur);
-  };
-
-  const handleSimplicitySliderChange = (values: number[]) => {
-    setSimplicity(values[0]);
-  };
-
-  const handleSimplicitySliderFinish = (values: number[]) => {
-    processImage(imageUri, toneValues, values[0], focusBlur);
-  };
-
-  const handleThresholdSliderChange = (values: number[]) => {
+  const handleApplyThreshold = async (values: number[]) => {
     setThresholdValues(values);
-  };
-
-  const handleFocusBlurSliderChange = (values: number[]) => {
-    setFocusBlur(values[0]);
-  };
-
-  const handleFocusBlurSliderFinish = (values: number[]) => {
-    processImage(imageUri, toneValues, simplicity, values[0]);
-  };
-
-  const handleThresholdSliderFinish = async (values: number[]) => {
-    setThresholdValues(values);
-
-    try {
-      const processedUri = await ImageProcessor.applyThreshold(
-        imageUri,
-        values,
-      );
-      if (!processedUri) {
-        console.warn('Warning: Processed URI is null or undefined');
-      }
-      setProcessedImageUri(processedUri);
-    } catch (error) {
-      console.error('Threshold processing failed:', error);
-    }
+    applyThreshold(values);
   };
 
   const handleGridTypeChange = (type: GridType) => setGridType(type);
@@ -173,26 +133,7 @@ const ImageProcessing = ({
   };
 
   const handleSaveImage = async () => {
-    if (!processedImageUri) return;
-
-    try {
-      // 1. Create a temporary public file path
-      const fileName = `notan-study_${Date.now()}.png`;
-      const destPath = `${RNFS.CachesDirectoryPath}/${fileName}`;
-
-      // 2. Copy the private file to the temp path
-      await RNFS.copyFile(processedImageUri, destPath);
-
-      // 3. Save the temp file to the gallery
-      const savedUri = await CameraRoll.saveAsset(`file://${destPath}`, {
-        type: 'photo',
-      });
-      Alert.alert('Saved!', 'Image saved to gallery.');
-      console.log('Saved URI:', savedUri);
-    } catch (error) {
-      console.error('Failed to save image:', error);
-      Alert.alert('Error', 'Failed to save image.');
-    }
+    processedImageUri && saveImageToGallery(processedImageUri);
   };
 
   const getSectionTitle = () => {
@@ -202,6 +143,13 @@ const ImageProcessing = ({
       return 'Histogram';
     }
     return 'Grid Type';
+  };
+
+  const getMenuIconColor = (menuItem: MenuItems) => {
+    if (menuItem === selectedAction) {
+      return theme.colors.primary;
+    }
+    return theme.colors.tertiary;
   };
 
   if (!imageUri) return null;
@@ -244,20 +192,20 @@ const ImageProcessing = ({
               toneValues={[toneValues]}
               simplicity={[simplicity]}
               focusBlur={[focusBlur]}
-              onToneChange={handleToneValueSliderChange}
-              onToneFinish={handleToneValueSliderFinish}
-              onSimplicityChange={handleSimplicitySliderChange}
-              onSimplicityFinish={handleSimplicitySliderFinish}
-              onFocusBlurChange={handleFocusBlurSliderChange}
-              onFocusBlurFinish={handleFocusBlurSliderFinish}
+              onToneChange={handleSliderChange(SliderType.Tone)}
+              onToneFinish={handleSliderFinish(SliderType.Tone)}
+              onSimplicityChange={handleSliderChange(SliderType.Simplicity)}
+              onSimplicityFinish={handleSliderFinish(SliderType.Simplicity)}
+              onFocusBlurChange={handleSliderChange(SliderType.Focus)}
+              onFocusBlurFinish={handleSliderFinish(SliderType.Focus)}
             />
           )}
           {selectedAction === MenuItems.Threshold && (
             <ThresholdControls
               histogram={histogram}
               threshold={thresholdValues}
-              onThresholdChange={handleThresholdSliderChange}
-              onThresholdFinish={handleThresholdSliderFinish}
+              onThresholdChange={handleSliderChange(SliderType.Threshold)}
+              onThresholdFinish={handleSliderFinish(SliderType.Threshold)}
             />
           )}
           {selectedAction === MenuItems.Grid && (
@@ -276,31 +224,19 @@ const ImageProcessing = ({
           <Appbar.Action
             icon="image-filter-black-white"
             style={styles.appBarButton}
-            iconColor={
-              selectedAction === MenuItems.Posterize
-                ? theme.colors.primary
-                : theme.colors.tertiary
-            }
+            iconColor={getMenuIconColor(MenuItems.Posterize)}
             onPress={() => setSelectedAction(MenuItems.Posterize)}
           />
           <Appbar.Action
             icon="sine-wave"
             style={styles.appBarButton}
-            iconColor={
-              selectedAction === MenuItems.Threshold
-                ? theme.colors.primary
-                : theme.colors.tertiary
-            }
+            iconColor={getMenuIconColor(MenuItems.Threshold)}
             onPress={() => setSelectedAction(MenuItems.Threshold)}
           />
           <Appbar.Action
             icon="grid"
             style={styles.appBarButton}
-            iconColor={
-              selectedAction === MenuItems.Grid
-                ? theme.colors.primary
-                : theme.colors.tertiary
-            }
+            iconColor={getMenuIconColor(MenuItems.Grid)}
             onPress={() => setSelectedAction(MenuItems.Grid)}
           />
         </Appbar>

@@ -1,10 +1,6 @@
 import { View, StyleSheet, Image } from 'react-native';
 import { ImageSliderProps } from './ImageSlider.types';
-import {
-  Gesture,
-  GestureDetector,
-  GestureHandlerRootView,
-} from 'react-native-gesture-handler';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useTheme } from 'react-native-paper';
 
 const SWIPE_THRESHOLD = 10;
@@ -26,31 +22,29 @@ const ImageSlider = ({ images, step, handleChangeStep }: ImageSliderProps) => {
   });
 
   return (
-    <GestureHandlerRootView style={styles.container}>
-      <GestureDetector gesture={panGesture}>
-        <View style={styles.gestureContainer}>
-          <View style={styles.imageWrapper}>
-            <Image source={images[step]} style={styles.image} />
-          </View>
-          <View style={styles.dotContainer}>
-            {Array.from({ length: total }).map((_, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.dot,
-                  {
-                    backgroundColor:
-                      step === index
-                        ? theme.colors.primary
-                        : theme.colors.tertiary,
-                  },
-                ]}
-              />
-            ))}
-          </View>
+    <GestureDetector gesture={panGesture}>
+      <View style={styles.gestureContainer}>
+        <View style={styles.imageWrapper}>
+          <Image source={images[step]} style={styles.image} />
         </View>
-      </GestureDetector>
-    </GestureHandlerRootView>
+        <View style={styles.dotContainer}>
+          {Array.from({ length: total }).map((_, index) => (
+            <View
+              key={index}
+              style={[
+                styles.dot,
+                {
+                  backgroundColor:
+                    step === index
+                      ? theme.colors.primary
+                      : theme.colors.tertiary,
+                },
+              ]}
+            />
+          ))}
+        </View>
+      </View>
+    </GestureDetector>
   );
 };
 
