@@ -36,10 +36,7 @@ local.properties
 .kotlin/
 
 # Android - OpenCV native libraries
-android/app/src/main/jniLibs/*
-
-# iOS - OpenCV framework
-ios/Frameworks/opencv2.framework/
+android/opencv/
 
 # node.js
 #
