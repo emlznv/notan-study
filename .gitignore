@@ -35,6 +35,12 @@ local.properties
 !debug.keystore
 .kotlin/
 
+# Android - OpenCV native libraries
+android/app/src/main/jniLibs/*
+
+# iOS - OpenCV framework
+ios/Frameworks/opencv2.framework/
+
 # node.js
 #
 node_modules/
@@ -42,12 +48,6 @@ npm-debug.log
 yarn-error.log
 
 # fastlane
-#
-# It is recommended to not store the screenshots in the git repo. Instead, use fastlane to re-generate the
-# screenshots whenever they are needed.
-# For more information about the recommended setup visit:
-# https://docs.fastlane.tools/best-practices/source-control/
-
 **/fastlane/report.xml
 **/fastlane/Preview.html
 **/fastlane/screenshots
