@@ -59,7 +59,6 @@ const ImageProcessing = ({
     height: number;
   } | null>(null);
 
-  const [snackbarVisible, setSnackbarVisible] = useState(false);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -78,14 +77,6 @@ const ImageProcessing = ({
     };
     imageUri && loadHistogram();
   }, [imageUri]);
-
-  useEffect(() => {
-    if (error) {
-      setSnackbarVisible(true);
-    } else {
-      setSnackbarVisible(false);
-    }
-  }, [error, setSnackbarVisible]);
 
   useEffect(() => {
     const steps = toneValues - 1;
@@ -255,11 +246,8 @@ const ImageProcessing = ({
           />
         </Appbar>
         <Snackbar
-          visible={snackbarVisible}
-          onDismiss={() => {
-            setSnackbarVisible(false);
-            clearError();
-          }}
+          visible={!!error}
+          onDismiss={() => clearError()}
           duration={3000}
         >
           {error}
