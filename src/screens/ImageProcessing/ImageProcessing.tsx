@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { useTheme } from 'react-native-paper';
+import { Snackbar, useTheme } from 'react-native-paper';
 import { RootStackParamList } from '../../../App';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ActivityIndicator, Appbar } from 'react-native-paper';
@@ -13,6 +13,7 @@ import {
   BOTTOM_APPBAR_HEIGHT,
   GridType,
   MenuItems,
+  SNACKBAR_TIMEOUT,
   ViewMode,
 } from '../../utils/constants/constants';
 import { useNavigation } from '@react-navigation/native';
@@ -36,8 +37,15 @@ const ImageProcessing = ({
   const { imageUri } = route.params;
   const { bottom } = useSafeAreaInsets();
 
-  const { processImage, processedImageUri, applyThreshold, getHistogram } =
-    useImageProcessing(imageUri);
+  const {
+    processImage,
+    processedImageUri,
+    applyThreshold,
+    getHistogram,
+    error,
+    clearError,
+  } = useImageProcessing(imageUri);
+  const [snackbarMsg, setSnackbarMsg] = useState('');
   const [toneValues, setToneValues] = useState(3);
   const [simplicity, setSimplicity] = useState(0);
   const [focusBlur, setFocusBlur] = useState(0);
@@ -62,7 +70,6 @@ const ImageProcessing = ({
     };
     calculateImageSize();
     processImage(toneValues, simplicity, focusBlur);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -71,7 +78,7 @@ const ImageProcessing = ({
       setHistogram(data);
     };
     imageUri && loadHistogram();
-  }, [imageUri, getHistogram]);
+  }, [imageUri]);
 
   useEffect(() => {
     const steps = toneValues - 1;
@@ -133,7 +140,14 @@ const ImageProcessing = ({
   };
 
   const handleSaveImage = async () => {
-    processedImageUri && saveImageToGallery(processedImageUri);
+    if (processedImageUri) {
+      const success = await saveImageToGallery(processedImageUri);
+      setSnackbarMsg(
+        success
+          ? 'Image saved to gallery!'
+          : 'Failed to save image. Please, try again.',
+      );
+    }
   };
 
   const getSectionTitle = () => {
@@ -240,6 +254,16 @@ const ImageProcessing = ({
             onPress={() => setSelectedAction(MenuItems.Grid)}
           />
         </Appbar>
+        <Snackbar
+          visible={!!snackbarMsg || !!error}
+          onDismiss={() => {
+            clearError();
+            setSnackbarMsg('');
+          }}
+          duration={SNACKBAR_TIMEOUT}
+        >
+          {snackbarMsg || error}
+        </Snackbar>
       </View>
     </>
   );

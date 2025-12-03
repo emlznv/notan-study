@@ -24,7 +24,7 @@ const Onboarding = ({
     },
     {
       title: 'Control and compare with easy tools',
-      body: 'Adjust value levels and thresholds, toggle between views, and unlock premium features like PSD layer epxort and live mode.',
+      body: 'Adjust tone steps, apply focus blur or threshold filters to examine composition and details.',
       image: require('../../assets/onboarding-3.png'),
     },
   ];

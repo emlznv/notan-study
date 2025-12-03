@@ -1,42 +1,54 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { NativeModules } from 'react-native';
 
 const { ImageProcessor } = NativeModules;
 
+const errorMessage = "Image processing failed. Please, try again.";
+
 export const useImageProcessing = (imageUri: string) => {
   const [processedImageUri, setProcessedImageUri] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const processImage = async (tones: number, simplicity: number, focusBlur: number) => {
+  const processImage = useCallback(async (tones: number, simplicity: number, focusBlur: number) => {
     try {
       const uri = await ImageProcessor.processImage(imageUri, tones, simplicity, focusBlur);
       setProcessedImageUri(uri);
       return uri;
-    } catch (err) {
-      console.error('Processing failed:', err);
+    } catch {
+      setError(errorMessage);
       return null;
     }
-  };
+  }, [imageUri]);
 
-  const applyThreshold = async (thresholds: number[]) => {
+  const applyThreshold = useCallback(async (thresholds: number[]) => {
     try {
       const uri = await ImageProcessor.applyThreshold(imageUri, thresholds);
       setProcessedImageUri(uri);
       return uri;
-    } catch (err) {
-      console.error('Threshold processing failed:', err);
+    } catch {
+      setError(errorMessage);
       return null;
     }
-  };
+  }, [imageUri]);
 
-  const getHistogram = async () => {
+  const getHistogram = useCallback(async () => {
     try {
       const histogram: number[] = await ImageProcessor.getHistogram(imageUri);
       return histogram;
-    } catch (err) {
-      console.error('Failed to get histogram', err);
+    } catch {
+      setError(errorMessage);
       return [];
     }
-  };
+  }, [imageUri]);
 
-  return { processedImageUri, processImage, applyThreshold, getHistogram };
+  const clearError = useCallback(() => setError(null), []);
+
+  return {
+    processedImageUri,
+    error,
+    clearError,
+    processImage,
+    applyThreshold,
+    getHistogram,
+  };
 };

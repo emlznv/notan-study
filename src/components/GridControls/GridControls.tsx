@@ -25,7 +25,7 @@ const GridControls = ({ selected, onChange }: GridControlsProps) => (
     >
       {GRID_OPTIONS.map(opt => (
         <Picker.Item
-          style={{ fontSize: 14 }}
+          style={styles.pickerItem}
           key={opt.value}
           label={opt.label}
           value={opt.value}
@@ -45,6 +45,9 @@ const styles = StyleSheet.create({
   },
   picker: {
     color: 'black',
+  },
+  pickerItem: {
+    fontSize: 14,
   },
 });
 
