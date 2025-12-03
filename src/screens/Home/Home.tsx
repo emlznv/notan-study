@@ -28,7 +28,7 @@ const Home = ({
 
   return (
     <>
-      <Text style={styles.title}>Select an image you want to study</Text>
+      <Text style={styles.title}>Start your image study</Text>
       <View style={styles.container}>
         <TouchableOpacity
           onPress={handlePickFromGallery}
