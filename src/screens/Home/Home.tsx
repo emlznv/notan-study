@@ -1,85 +1,26 @@
 import React from 'react';
-import {
-  View,
-  StyleSheet,
-  Text,
-  Alert,
-  PermissionsAndroid,
-  Image,
-  TouchableOpacity,
-} from 'react-native';
-import { Button, useTheme } from 'react-native-paper';
-import ImagePicker, { ImageOrVideo } from 'react-native-image-crop-picker';
+import { View, StyleSheet, Text, Image, TouchableOpacity } from 'react-native';
+import { Button, Snackbar, useTheme } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../../App';
+import { useCamera } from '../../utils/hooks/useCamera';
+import { SNACKBAR_TIMEOUT } from '../../utils/constants/constants';
 
 const Home = ({
   navigation,
 }: NativeStackScreenProps<RootStackParamList, 'Home'>) => {
   const theme = useTheme();
-
-  const requestCameraPermission = async () => {
-    try {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.CAMERA,
-        {
-          title: 'Camera Permission',
-          message: 'App needs access to your camera to take photos',
-          buttonPositive: 'OK',
-        },
-      );
-      return granted === PermissionsAndroid.RESULTS.GRANTED;
-    } catch (error) {
-      // TODO: error handling
-      console.warn(error);
-      return false;
-    }
-  };
+  const { takePhoto, pickFromGallery, error, clearError } = useCamera();
 
   const handleTakePhoto = async () => {
-    const hasPermission = await requestCameraPermission();
-    if (!hasPermission) {
-      Alert.alert(
-        'Permission Denied',
-        'Camera access is required to take photos.',
-      );
-      return;
-    }
-
-    try {
-      // TODO: change UI colors to use the theme ones
-      const image = await ImagePicker.openCamera({
-        cropping: true,
-        includeBase64: false,
-        freeStyleCropEnabled: false,
-        avoidEmptySpaceAroundImage: false,
-      });
-
-      handleProcessImage(image);
-    } catch (error) {
-      // TODO: error handling
-      console.log('Camera cancelled or failed', error);
+    const image = await takePhoto();
+    if (image?.path) {
+      navigation.navigate('ImageProcessing', { imageUri: image.path });
     }
   };
 
   const handlePickFromGallery = async () => {
-    try {
-      // TODO: change UI colors to use the theme ones
-      const image = await ImagePicker.openPicker({
-        cropping: true,
-        includeBase64: false,
-        freeStyleCropEnabled: false,
-        avoidEmptySpaceAroundImage: false,
-      });
-
-      handleProcessImage(image);
-    } catch (error) {
-      // TODO: error handling
-      console.log('Gallery cancelled or failed', error);
-    }
-  };
-
-  const handleProcessImage = (image: ImageOrVideo) => {
+    const image = await pickFromGallery();
     if (image?.path) {
       navigation.navigate('ImageProcessing', { imageUri: image.path });
     }
@@ -113,6 +54,13 @@ const Home = ({
         >
           Take photo
         </Button>
+        <Snackbar
+          visible={!!error}
+          onDismiss={() => clearError()}
+          duration={SNACKBAR_TIMEOUT}
+        >
+          {error}
+        </Snackbar>
       </View>
     </>
   );

@@ -13,6 +13,7 @@ import {
   BOTTOM_APPBAR_HEIGHT,
   GridType,
   MenuItems,
+  SNACKBAR_TIMEOUT,
   ViewMode,
 } from '../../utils/constants/constants';
 import { useNavigation } from '@react-navigation/native';
@@ -44,6 +45,7 @@ const ImageProcessing = ({
     error,
     clearError,
   } = useImageProcessing(imageUri);
+  const [snackbarMsg, setSnackbarMsg] = useState('');
   const [toneValues, setToneValues] = useState(3);
   const [simplicity, setSimplicity] = useState(0);
   const [focusBlur, setFocusBlur] = useState(0);
@@ -138,7 +140,14 @@ const ImageProcessing = ({
   };
 
   const handleSaveImage = async () => {
-    processedImageUri && saveImageToGallery(processedImageUri);
+    if (processedImageUri) {
+      const success = await saveImageToGallery(processedImageUri);
+      setSnackbarMsg(
+        success
+          ? 'Image saved to gallery!'
+          : 'Failed to save image. Please, try again.',
+      );
+    }
   };
 
   const getSectionTitle = () => {
@@ -246,11 +255,14 @@ const ImageProcessing = ({
           />
         </Appbar>
         <Snackbar
-          visible={!!error}
-          onDismiss={() => clearError()}
-          duration={3000}
+          visible={!!snackbarMsg || !!error}
+          onDismiss={() => {
+            clearError();
+            setSnackbarMsg('');
+          }}
+          duration={SNACKBAR_TIMEOUT}
         >
-          {error}
+          {snackbarMsg || error}
         </Snackbar>
       </View>
     </>
