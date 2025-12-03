@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { useTheme } from 'react-native-paper';
+import { Snackbar, useTheme } from 'react-native-paper';
 import { RootStackParamList } from '../../../App';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ActivityIndicator, Appbar } from 'react-native-paper';
@@ -36,8 +36,14 @@ const ImageProcessing = ({
   const { imageUri } = route.params;
   const { bottom } = useSafeAreaInsets();
 
-  const { processImage, processedImageUri, applyThreshold, getHistogram } =
-    useImageProcessing(imageUri);
+  const {
+    processImage,
+    processedImageUri,
+    applyThreshold,
+    getHistogram,
+    error,
+    clearError,
+  } = useImageProcessing(imageUri);
   const [toneValues, setToneValues] = useState(3);
   const [simplicity, setSimplicity] = useState(0);
   const [focusBlur, setFocusBlur] = useState(0);
@@ -53,6 +59,7 @@ const ImageProcessing = ({
     height: number;
   } | null>(null);
 
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -62,7 +69,6 @@ const ImageProcessing = ({
     };
     calculateImageSize();
     processImage(toneValues, simplicity, focusBlur);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -71,7 +77,15 @@ const ImageProcessing = ({
       setHistogram(data);
     };
     imageUri && loadHistogram();
-  }, [imageUri, getHistogram]);
+  }, [imageUri]);
+
+  useEffect(() => {
+    if (error) {
+      setSnackbarVisible(true);
+    } else {
+      setSnackbarVisible(false);
+    }
+  }, [error, setSnackbarVisible]);
 
   useEffect(() => {
     const steps = toneValues - 1;
@@ -240,6 +254,16 @@ const ImageProcessing = ({
             onPress={() => setSelectedAction(MenuItems.Grid)}
           />
         </Appbar>
+        <Snackbar
+          visible={snackbarVisible}
+          onDismiss={() => {
+            setSnackbarVisible(false);
+            clearError();
+          }}
+          duration={3000}
+        >
+          {error}
+        </Snackbar>
       </View>
     </>
   );
