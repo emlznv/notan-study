@@ -1,3 +1,14 @@
+# Notan Study
+This is a React Native mobile app which aims to help artists analyze images by breaking them into simplified value-based compositions. It allows users study tone, contrast, and shape to improve sketches, thumbnails, and visual design skills
+
+## Features
+Posterization - reduces an image to a limited number of tones
+Threshold Adjuster – fine-tune the range of values for each level
+Simplicity - applies bilateral filtering to smooth image regions
+Focus/Blur Control - adds Gaussian blur for edge softness or selective focus
+Histogram - visualizes brightness distribution and contrast
+Tech Stack
+This project is built using React Native with TypeScript, Kotlin Native Module and OpenCV for image processing.
 
 ## Run Locally
 
